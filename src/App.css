@@ -105,7 +105,26 @@ body {
 }.App {
   text-align: center;
 }
+/* Add this to your existing App.css */
 
+/* Mobile styles */
+@media (max-width: 992px) {
+  .main-content {
+    margin-left: 0 !important;
+    padding-top: 60px; /* Add padding to prevent content from hiding behind mobile toggle */
+  }
+  
+  .page-header {
+    margin-top: 10px;
+  }
+}
+
+/* Ensure page content is not hidden behind mobile toggle */
+@media (max-width: 576px) {
+  .main-content {
+    padding-top: 50px;
+  }
+}
 .App-logo {
   height: 40vmin;
   pointer-events: none;

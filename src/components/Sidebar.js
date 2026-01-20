@@ -3,8 +3,8 @@ import { NavLink } from 'react-router-dom';
 import { 
   FiHome, FiFeather, FiGitMerge, 
   FiDollarSign, FiTrendingUp, FiBarChart2, 
-  FiSettings, FiMenu, FiChevronLeft 
-} from 'react-icons/fi'; // Removed FiDroplet
+  FiSettings, FiMenu, FiChevronLeft, FiX
+} from 'react-icons/fi';
 import { FaFish, FaEgg } from 'react-icons/fa';
 import './Sidebar.css';
 
@@ -20,6 +20,13 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
     { path: '/settings', icon: <FiSettings />, label: 'Settings' },
   ];
 
+  // Close sidebar on mobile when clicking a link
+  const handleNavClick = () => {
+    if (window.innerWidth <= 992) {
+      setSidebarOpen(false);
+    }
+  };
+
   return (
     <>
       <div className={`sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
@@ -31,6 +38,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
           <button 
             className="toggle-btn"
             onClick={() => setSidebarOpen(!sidebarOpen)}
+            aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
           >
             {sidebarOpen ? <FiChevronLeft /> : <FiMenu />}
           </button>
@@ -44,6 +52,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
               className={({ isActive }) => 
                 `nav-item ${isActive ? 'active' : ''}`
               }
+              onClick={handleNavClick}
             >
               <span className="nav-icon">{item.icon}</span>
               {sidebarOpen && <span className="nav-label">{item.label}</span>}
@@ -68,6 +77,18 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         )}
       </div>
       
+      {/* Mobile menu toggle button - shown only on mobile when sidebar is closed */}
+      {!sidebarOpen && (
+        <button 
+          className="mobile-menu-toggle"
+          onClick={() => setSidebarOpen(true)}
+          aria-label="Open menu"
+        >
+          <FiMenu />
+        </button>
+      )}
+      
+      {/* Overlay for mobile - shown when sidebar is open on mobile */}
       {sidebarOpen && (
         <div 
           className="sidebar-overlay"
