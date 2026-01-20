@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { FiX, FiDollarSign } from 'react-icons/fi';
+import { FiX } from 'react-icons/fi'; // Removed FiDollarSign
 import './Modal.css';
-
 const LivestockModal = ({ isOpen, onClose, onSave, animal }) => {
   const [formData, setFormData] = useState({
     tagId: '',

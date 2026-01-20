@@ -6,7 +6,7 @@ import PoultryBatchModal from '../components/PoultryBatchModal';
 import './Poultry.css';
 
 const Poultry = () => {
-  const { showSuccess, showError } = useToast();
+  const { showSuccess} = useToast();
   
   const [batches, setBatches] = useState([
     {

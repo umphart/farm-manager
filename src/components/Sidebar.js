@@ -1,10 +1,10 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
-  FiHome, FiDroplet, FiFeather, FiGitMerge, 
+  FiHome, FiFeather, FiGitMerge, 
   FiDollarSign, FiTrendingUp, FiBarChart2, 
   FiSettings, FiMenu, FiChevronLeft 
-} from 'react-icons/fi';
+} from 'react-icons/fi'; // Removed FiDroplet
 import { FaFish, FaEgg } from 'react-icons/fa';
 import './Sidebar.css';
 

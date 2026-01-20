@@ -6,7 +6,7 @@ import PondModal from '../components/PondModal';
 import './FishFarming.css';
 
 const FishFarming = () => {
-  const { showSuccess, showError } = useToast();
+  const { showSuccess } = useToast();
   
   const [ponds, setPonds] = useState([
     { 

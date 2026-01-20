@@ -1,5 +1,5 @@
 import React from 'react';
-import { FiDollarSign, FiTrendingUp, FiPackage, FiUsers } from 'react-icons/fi';
+import { FiDollarSign, FiTrendingUp, FiUsers } from 'react-icons/fi'; // Removed FiPackage
 import { FaFish, FaEgg } from 'react-icons/fa';
 import StatCard from '../components/StatCard';
 import RecentActivity from '../components/RecentActivity';

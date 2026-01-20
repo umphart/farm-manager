@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FiSave, FiUser, FiBell, FiShield, FiGlobe, FiDatabase, FiMail, FiLock, FiTrash2, FiUpload, FiDownload } from 'react-icons/fi';
+import { FiSave, FiUser, FiBell, FiShield, FiGlobe, FiDatabase, FiLock, FiTrash2, FiUpload, FiDownload } from 'react-icons/fi'; // Removed FiMail
 import './Settings.css';
 
 const Settings = () => {
