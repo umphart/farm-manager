@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { FiX } from 'react-icons/fi'; // Removed FiDollarSign
+import { FiX } from 'react-icons/fi';
 import './Modal.css';
+
 const LivestockModal = ({ isOpen, onClose, onSave, animal }) => {
   const [formData, setFormData] = useState({
     tagId: '',
@@ -9,10 +10,6 @@ const LivestockModal = ({ isOpen, onClose, onSave, animal }) => {
     dateAcquired: '',
     purchasePrice: '',
     gender: 'male',
-    age: '',
-    weight: '',
-    healthStatus: 'healthy',
-    penNumber: '',
     notes: '',
   });
 
@@ -30,10 +27,6 @@ const LivestockModal = ({ isOpen, onClose, onSave, animal }) => {
         dateAcquired: animal.dateAcquired || new Date().toISOString().split('T')[0],
         purchasePrice: animal.purchasePrice || '',
         gender: animal.gender || 'male',
-        age: animal.age || '',
-        weight: animal.weight || '',
-        healthStatus: animal.healthStatus || 'healthy',
-        penNumber: animal.penNumber || '',
         notes: animal.notes || '',
       });
     } else {
@@ -44,10 +37,6 @@ const LivestockModal = ({ isOpen, onClose, onSave, animal }) => {
         dateAcquired: new Date().toISOString().split('T')[0],
         purchasePrice: '',
         gender: 'male',
-        age: '',
-        weight: '',
-        healthStatus: 'healthy',
-        penNumber: '',
         notes: '',
       });
     }
@@ -83,14 +72,6 @@ const LivestockModal = ({ isOpen, onClose, onSave, animal }) => {
     { value: 'cattle', label: 'Cattle' },
     { value: 'pig', label: 'Pig' },
     { value: 'rabbit', label: 'Rabbit' },
-  ];
-
-  const healthStatuses = [
-    { value: 'healthy', label: 'Healthy' },
-    { value: 'sick', label: 'Sick' },
-    { value: 'injured', label: 'Injured' },
-    { value: 'pregnant', label: 'Pregnant' },
-    { value: 'recovering', label: 'Recovering' },
   ];
 
   const currentBreeds = getBreeds(formData.animalType);
@@ -191,61 +172,6 @@ const LivestockModal = ({ isOpen, onClose, onSave, animal }) => {
                   <option value="male">Male</option>
                   <option value="female">Female</option>
                 </select>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="age">Age (months)</label>
-                <input
-                  type="number"
-                  id="age"
-                  name="age"
-                  value={formData.age}
-                  onChange={handleChange}
-                  placeholder="e.g., 12"
-                  min="0"
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="weight">Weight (kg)</label>
-                <input
-                  type="number"
-                  id="weight"
-                  name="weight"
-                  value={formData.weight}
-                  onChange={handleChange}
-                  placeholder="e.g., 25.5"
-                  min="0"
-                  step="0.1"
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="healthStatus">Health Status</label>
-                <select
-                  id="healthStatus"
-                  name="healthStatus"
-                  value={formData.healthStatus}
-                  onChange={handleChange}
-                >
-                  {healthStatuses.map(status => (
-                    <option key={status.value} value={status.value}>
-                      {status.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="penNumber">Pen/House Number</label>
-                <input
-                  type="text"
-                  id="penNumber"
-                  name="penNumber"
-                  value={formData.penNumber}
-                  onChange={handleChange}
-                  placeholder="e.g., Pen A, House 1"
-                />
               </div>
 
               <div className="form-group full-width">

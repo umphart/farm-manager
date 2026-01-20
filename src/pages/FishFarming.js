@@ -112,6 +112,16 @@ const FishFarming = () => {
     return breed.charAt(0).toUpperCase() + breed.slice(1);
   };
 
+  const getStatusColor = (status) => {
+    switch(status) {
+      case 'active': return '#4CAF50';
+      case 'maintenance': return '#FF9800';
+      case 'inactive': return '#9E9E9E';
+      case 'harvested': return '#2196F3';
+      default: return '#9E9E9E';
+    }
+  };
+
   return (
     <div className="fish-farming-page">
       <div className="page-header">
@@ -170,91 +180,173 @@ const FishFarming = () => {
       <div className="ponds-section">
         <div className="section-header">
           <h2>Pond Management</h2>
-          <div className="pond-summary">
+          <div className="table-summary">
             <span>Total Ponds: {ponds.length}</span>
             <span>Total Capacity: {formatNumber(ponds.reduce((sum, pond) => sum + pond.capacity, 0))} fish</span>
           </div>
         </div>
         
-        <div className="ponds-grid">
+        {/* Desktop Table View */}
+        <div className="ponds-table desktop-view">
+          <div className="table-container">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Pond Name</th>
+                  <th>Breed</th>
+                  <th>Dimensions</th>
+                  <th>Capacity</th>
+                  <th>Current Stock</th>
+                  <th>Utilization</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ponds.map(pond => (
+                  <tr key={pond.id}>
+                    <td data-label="Pond Name">
+                      <div className="pond-name">
+                        <strong>{pond.name}</strong>
+                        <div className="pond-meta">
+                          <span className="pond-date">Created: {pond.dateCreated}</span>
+                          <span className="pond-source">Water: {pond.waterSource}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td data-label="Breed">
+                      <span className="pond-breed">{getBreedDisplayName(pond.breed)}</span>
+                    </td>
+                    <td data-label="Dimensions">{pond.length}m × {pond.width}m × {pond.depth}m</td>
+                    <td data-label="Capacity">{formatNumber(pond.capacity)}</td>
+                    <td data-label="Current Stock">{formatNumber(pond.currentStock)}</td>
+                    <td data-label="Utilization">
+                      {pond.capacity > 0 ? ((pond.currentStock / pond.capacity) * 100).toFixed(1) + '%' : '0%'}
+                    </td>
+                    <td data-label="Status">
+                      <span 
+                        className="pond-status" 
+                        style={{ 
+                          backgroundColor: `${getStatusColor(pond.status)}20`, 
+                          color: getStatusColor(pond.status) 
+                        }}
+                      >
+                        {pond.status}
+                      </span>
+                    </td>
+                    <td data-label="Actions">
+                      <div className="pond-actions-icons">
+                        <button 
+                          className="icon-btn" 
+                          onClick={() => handleEditPond(pond)}
+                          title="Edit Pond"
+                        >
+                          <FiEdit />
+                        </button>
+                        <button 
+                          className="icon-btn delete" 
+                          onClick={() => handleDeletePond(pond.id)}
+                          title="Delete Pond"
+                        >
+                          <FiTrash2 />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Mobile Cards View */}
+        <div className="mobile-ponds-view">
           {ponds.map(pond => (
-            <div key={pond.id} className={`pond-card ${pond.status}`}>
-              <div className="pond-header">
-                <div>
+            <div key={pond.id} className="mobile-pond-card">
+              <div className="mobile-pond-header">
+                <div className="mobile-pond-title">
                   <h3>{pond.name}</h3>
-                  <div className="pond-meta">
-                    <span className="pond-breed">{getBreedDisplayName(pond.breed)}</span>
-                    <span className="pond-date">Created: {pond.dateCreated}</span>
+                  <div className="mobile-pond-meta">
+                    <span className="mobile-pond-breed">{getBreedDisplayName(pond.breed)}</span>
+                    <span className="mobile-pond-date">Created: {pond.dateCreated}</span>
                   </div>
                 </div>
-                <div className="pond-header-actions">
-                  <span className={`pond-status ${pond.status}`}>
+                <div className="mobile-pond-status">
+                  <span 
+                    className="pond-status" 
+                    style={{ 
+                      backgroundColor: `${getStatusColor(pond.status)}20`, 
+                      color: getStatusColor(pond.status) 
+                    }}
+                  >
                     {pond.status}
                   </span>
-                  <div className="pond-actions-icons">
-                    <button 
-                      className="icon-btn" 
-                      onClick={() => handleEditPond(pond)}
-                      title="Edit Pond"
-                    >
-                      <FiEdit />
-                    </button>
-                    <button 
-                      className="icon-btn delete" 
-                      onClick={() => handleDeletePond(pond.id)}
-                      title="Delete Pond"
-                    >
-                      <FiTrash2 />
-                    </button>
-                  </div>
                 </div>
               </div>
               
-              <div className="pond-details">
-                <div className="pond-detail">
-                  <span className="detail-label">Dimensions:</span>
-                  <span className="detail-value">{pond.length}m × {pond.width}m × {pond.depth}m</span>
-                </div>
-                <div className="pond-detail">
-                  <span className="detail-label">Capacity:</span>
-                  <span className="detail-value">{formatNumber(pond.capacity)} fish</span>
-                </div>
-                <div className="pond-detail">
-                  <span className="detail-label">Current Stock:</span>
-                  <span className="detail-value">{formatNumber(pond.currentStock)} fish</span>
-                </div>
-                <div className="pond-detail">
-                  <span className="detail-label">Utilization:</span>
-                  <span className="detail-value">
-                    {((pond.currentStock / pond.capacity) * 100).toFixed(1)}%
-                  </span>
-                </div>
-                <div className="pond-detail">
-                  <span className="detail-label">Water Source:</span>
-                  <span className="detail-value">{pond.waterSource}</span>
-                </div>
-              </div>
-
-              {pond.status === 'active' && pond.currentStock > 0 && (
-                <div className="water-parameters">
-                  <h4>Water Parameters</h4>
-                  <div className="parameters-grid">
-                    <div className="parameter">
-                      <span className="param-label">Temperature:</span>
-                      <span className="param-value">{pond.waterTemp}°C</span>
-                    </div>
-                    <div className="parameter">
-                      <span className="param-label">pH Level:</span>
-                      <span className="param-value">{pond.pH}</span>
-                    </div>
+              <div className="mobile-pond-details">
+                <div className="mobile-detail-row">
+                  <div className="mobile-detail-item">
+                    <span className="mobile-detail-label">Dimensions:</span>
+                    <span className="mobile-detail-value">{pond.length}m × {pond.width}m × {pond.depth}m</span>
+                  </div>
+                  <div className="mobile-detail-item">
+                    <span className="mobile-detail-label">Capacity:</span>
+                    <span className="mobile-detail-value">{formatNumber(pond.capacity)} fish</span>
                   </div>
                 </div>
-              )}
-
-              <div className="pond-actions">
+                
+                <div className="mobile-detail-row">
+                  <div className="mobile-detail-item">
+                    <span className="mobile-detail-label">Current Stock:</span>
+                    <span className="mobile-detail-value">{formatNumber(pond.currentStock)} fish</span>
+                  </div>
+                  <div className="mobile-detail-item">
+                    <span className="mobile-detail-label">Utilization:</span>
+                    <span className="mobile-detail-value">
+                      {pond.capacity > 0 ? ((pond.currentStock / pond.capacity) * 100).toFixed(1) + '%' : '0%'}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="mobile-detail-row">
+                  <div className="mobile-detail-item">
+                    <span className="mobile-detail-label">Water Source:</span>
+                    <span className="mobile-detail-value">{pond.waterSource}</span>
+                  </div>
+                </div>
+                
+                {pond.status === 'active' && pond.currentStock > 0 && (
+                  <div className="mobile-water-parameters">
+                    <h4>Water Parameters</h4>
+                    <div className="mobile-parameters-grid">
+                      <div className="mobile-parameter">
+                        <span className="mobile-param-label">Temperature:</span>
+                        <span className="mobile-param-value">{pond.waterTemp}°C</span>
+                      </div>
+                      <div className="mobile-parameter">
+                        <span className="mobile-param-label">pH Level:</span>
+                        <span className="mobile-param-value">{pond.pH}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              <div className="mobile-pond-actions">
+                <button 
+                  className="btn btn-sm btn-secondary" 
+                  onClick={() => handleEditPond(pond)}
+                >
+                  <FiEdit /> Edit
+                </button>
+                <button 
+                  className="btn btn-sm btn-secondary delete" 
+                  onClick={() => handleDeletePond(pond.id)}
+                >
+                  <FiTrash2 /> Delete
+                </button>
                 <button className="btn btn-sm btn-primary">View Details</button>
-                <button className="btn btn-sm btn-secondary">Record Feeding</button>
-                <button className="btn btn-sm btn-secondary">Update Stock</button>
               </div>
             </div>
           ))}
@@ -262,34 +354,78 @@ const FishFarming = () => {
       </div>
 
       <div className="feeding-schedule">
-        <h2>Feeding Schedule</h2>
-        <div className="schedule-table">
-          <table>
-            <thead>
-              <tr>
-                <th>Pond</th>
-                <th>Breed</th>
-                <th>Feed Type</th>
-                <th>Quantity (kg)</th>
-                <th>Frequency</th>
-                <th>Last Fed</th>
-                <th>Next Feeding</th>
-              </tr>
-            </thead>
-            <tbody>
-              {ponds.filter(p => p.status === 'active' && p.currentStock > 0).map(pond => (
-                <tr key={pond.id}>
-                  <td>{pond.name}</td>
-                  <td>{getBreedDisplayName(pond.breed)}</td>
-                  <td>{pond.breed === 'catfish' ? 'Floating Pellets' : 'Sinking Pellets'}</td>
-                  <td>{Math.round(pond.currentStock * 0.02)}</td>
-                  <td>3 times/day</td>
-                  <td>Today 08:00</td>
-                  <td>Today 14:00</td>
+        <div className="section-header">
+          <h2>Feeding Schedule</h2>
+          <div className="table-summary">
+            <span>Showing {ponds.filter(p => p.status === 'active' && p.currentStock > 0).length} ponds</span>
+          </div>
+        </div>
+        
+        {/* Desktop Table View */}
+        <div className="schedule-table desktop-view">
+          <div className="table-container">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Pond</th>
+                  <th>Breed</th>
+                  <th>Feed Type</th>
+                  <th>Quantity (kg)</th>
+                  <th>Frequency</th>
+                  <th>Last Fed</th>
+                  <th>Next Feeding</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {ponds.filter(p => p.status === 'active' && p.currentStock > 0).map(pond => (
+                  <tr key={pond.id}>
+                    <td data-label="Pond">{pond.name}</td>
+                    <td data-label="Breed">{getBreedDisplayName(pond.breed)}</td>
+                    <td data-label="Feed Type">{pond.breed === 'catfish' ? 'Floating Pellets' : 'Sinking Pellets'}</td>
+                    <td data-label="Quantity">{Math.round(pond.currentStock * 0.02)}</td>
+                    <td data-label="Frequency">3 times/day</td>
+                    <td data-label="Last Fed">Today 08:00</td>
+                    <td data-label="Next Feeding">Today 14:00</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Mobile Feeding Cards */}
+        <div className="mobile-feeding-view">
+          {ponds.filter(p => p.status === 'active' && p.currentStock > 0).map(pond => (
+            <div key={pond.id} className="mobile-feeding-card">
+              <div className="mobile-feeding-header">
+                <h4>{pond.name}</h4>
+                <span className="mobile-feeding-breed">{getBreedDisplayName(pond.breed)}</span>
+              </div>
+              
+              <div className="mobile-feeding-details">
+                <div className="mobile-feeding-item">
+                  <span className="label">Feed Type:</span>
+                  <span className="value">{pond.breed === 'catfish' ? 'Floating Pellets' : 'Sinking Pellets'}</span>
+                </div>
+                <div className="mobile-feeding-item">
+                  <span className="label">Quantity:</span>
+                  <span className="value">{Math.round(pond.currentStock * 0.02)} kg</span>
+                </div>
+                <div className="mobile-feeding-item">
+                  <span className="label">Frequency:</span>
+                  <span className="value">3 times/day</span>
+                </div>
+                <div className="mobile-feeding-item">
+                  <span className="label">Last Fed:</span>
+                  <span className="value">Today 08:00</span>
+                </div>
+                <div className="mobile-feeding-item">
+                  <span className="label">Next Feeding:</span>
+                  <span className="value">Today 14:00</span>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 

@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { FiX } from 'react-icons/fi';
 import './Modal.css';
+
 const PoultryBatchModal = ({ isOpen, onClose, onSave, batch }) => {
   const [formData, setFormData] = useState({
     batchName: '',
     dateAcquired: '',
     breed: 'layer',
     quantity: '',
-    house: 'House A',
     age: '',
-    source: 'hatchery',
-    status: 'active',
-    expectedProduction: '',
+    expectedProductionDate: '',
   });
 
   useEffect(() => {
@@ -21,11 +19,8 @@ const PoultryBatchModal = ({ isOpen, onClose, onSave, batch }) => {
         dateAcquired: batch.dateAcquired || new Date().toISOString().split('T')[0],
         breed: batch.breed || 'layer',
         quantity: batch.quantity || '',
-        house: batch.house || 'House A',
         age: batch.age || '',
-        source: batch.source || 'hatchery',
-        status: batch.status || 'active',
-        expectedProduction: batch.expectedProduction || '',
+        expectedProductionDate: batch.expectedProductionDate || '',
       });
     } else {
       setFormData({
@@ -33,11 +28,8 @@ const PoultryBatchModal = ({ isOpen, onClose, onSave, batch }) => {
         dateAcquired: new Date().toISOString().split('T')[0],
         breed: 'layer',
         quantity: '',
-        house: 'House A',
         age: '',
-        source: 'hatchery',
-        status: 'active',
-        expectedProduction: '',
+        expectedProductionDate: '',
       });
     }
   }, [batch]);
@@ -48,19 +40,6 @@ const PoultryBatchModal = ({ isOpen, onClose, onSave, batch }) => {
       ...prev,
       [name]: value
     }));
-  };
-
-  const calculateExpectedProduction = () => {
-    const quantity = parseInt(formData.quantity) || 0;
-    const breed = formData.breed;
-    
-    let rate = 0;
-    if (breed === 'layer') rate = 0.8; // 80% production rate
-    else if (breed === 'broiler') rate = 0; // broilers don't lay eggs
-    else if (breed === 'dual') rate = 0.6; // dual purpose 60%
-    
-    const production = Math.round(quantity * rate);
-    setFormData(prev => ({ ...prev, expectedProduction: production.toString() }));
   };
 
   const handleSubmit = (e) => {
@@ -77,9 +56,6 @@ const PoultryBatchModal = ({ isOpen, onClose, onSave, batch }) => {
     { value: 'local', label: 'Local Breed' },
     { value: 'other', label: 'Other' }
   ];
-
-  const houses = ['House A', 'House B', 'House C', 'House D', 'House E'];
-  const sources = ['hatchery', 'local market', 'other farm', 'breeding'];
 
   return (
     <div className="modal-overlay">
@@ -126,7 +102,6 @@ const PoultryBatchModal = ({ isOpen, onClose, onSave, batch }) => {
                   name="breed"
                   value={formData.breed}
                   onChange={handleChange}
-                  onBlur={calculateExpectedProduction}
                   required
                 >
                   {breeds.map(breed => (
@@ -145,26 +120,10 @@ const PoultryBatchModal = ({ isOpen, onClose, onSave, batch }) => {
                   name="quantity"
                   value={formData.quantity}
                   onChange={handleChange}
-                  onBlur={calculateExpectedProduction}
                   placeholder="e.g., 500"
                   min="1"
                   required
                 />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="house">House Assignment *</label>
-                <select
-                  id="house"
-                  name="house"
-                  value={formData.house}
-                  onChange={handleChange}
-                  required
-                >
-                  {houses.map(house => (
-                    <option key={house} value={house}>{house}</option>
-                  ))}
-                </select>
               </div>
 
               <div className="form-group">
@@ -178,56 +137,26 @@ const PoultryBatchModal = ({ isOpen, onClose, onSave, batch }) => {
                   placeholder="e.g., 20"
                   min="0"
                 />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="source">Source</label>
-                <select
-                  id="source"
-                  name="source"
-                  value={formData.source}
-                  onChange={handleChange}
-                >
-                  {sources.map(source => (
-                    <option key={source} value={source}>
-                      {source.charAt(0).toUpperCase() + source.slice(1)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="expectedProduction">Expected Daily Production</label>
-                <input
-                  type="number"
-                  id="expectedProduction"
-                  name="expectedProduction"
-                  value={formData.expectedProduction}
-                  onChange={handleChange}
-                  placeholder="Auto-calculated for layers"
-                  readOnly={formData.breed === 'layer'}
-                />
                 <small className="form-help">
-                  {formData.breed === 'layer' 
-                    ? 'Estimated daily eggs' 
-                    : 'Not applicable for broilers'}
+                  Age of birds at time of acquisition
                 </small>
               </div>
 
               <div className="form-group">
-                <label htmlFor="status">Status</label>
-                <select
-                  id="status"
-                  name="status"
-                  value={formData.status}
+                <label htmlFor="expectedProductionDate">Expected Production Date</label>
+                <input
+                  type="date"
+                  id="expectedProductionDate"
+                  name="expectedProductionDate"
+                  value={formData.expectedProductionDate}
                   onChange={handleChange}
-                >
-                  <option value="active">Active</option>
-                  <option value="growing">Growing</option>
-                  <option value="laying">Laying</option>
-                  <option value="harvested">Harvested</option>
-                  <option value="sold">Sold</option>
-                </select>
+                  min={formData.dateAcquired}
+                />
+                <small className="form-help">
+                  For layers: Expected start of egg laying
+                  <br />
+                  For broilers: Expected harvest date
+                </small>
               </div>
             </div>
           </div>

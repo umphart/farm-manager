@@ -6,7 +6,7 @@ import PoultryBatchModal from '../components/PoultryBatchModal';
 import './Poultry.css';
 
 const Poultry = () => {
-  const { showSuccess} = useToast();
+  const { showSuccess } = useToast();
   
   const [batches, setBatches] = useState([
     {
@@ -127,12 +127,12 @@ const Poultry = () => {
 
   const getStatusColor = (status) => {
     switch(status) {
-      case 'active': return 'green';
-      case 'growing': return 'blue';
-      case 'laying': return 'orange';
-      case 'harvested': return 'gray';
-      case 'sold': return 'purple';
-      default: return 'gray';
+      case 'active': return '#4CAF50';
+      case 'growing': return '#2196F3';
+      case 'laying': return '#FF9800';
+      case 'harvested': return '#9E9E9E';
+      case 'sold': return '#9C27B0';
+      default: return '#9E9E9E';
     }
   };
 
@@ -197,82 +197,159 @@ const Poultry = () => {
         <div className="section">
           <div className="section-header">
             <h2>Poultry Batches</h2>
-            <div className="batch-summary">
+            <div className="table-summary">
               <span>Total Batches: {batches.length}</span>
               <span>Total Birds: {formatNumber(calculateTotalBirds())}</span>
             </div>
           </div>
           
-          <div className="batches-grid">
+          {/* Desktop Table View */}
+          <div className="batches-table desktop-view">
+            <div className="table-container">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Batch Name</th>
+                    <th>Breed</th>
+                    <th>Quantity</th>
+                    <th>House</th>
+                    <th>Age</th>
+                    <th>Status</th>
+                    <th>Daily Eggs</th>
+                    <th>Feed/Day</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {batches.map(batch => (
+                    <tr key={batch.id}>
+                      <td data-label="Batch Name">
+                        <div className="batch-name">
+                          <strong>{batch.batchName}</strong>
+                          <div className="batch-meta">
+                            <span className="batch-date">Acquired: {batch.dateAcquired}</span>
+                            <span className="batch-source">{batch.source}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td data-label="Breed">
+                        <span className="batch-breed">{getBreedDisplayName(batch.breed)}</span>
+                      </td>
+                      <td data-label="Quantity">{formatNumber(batch.quantity)} birds</td>
+                      <td data-label="House">{batch.house}</td>
+                      <td data-label="Age">{batch.age} weeks</td>
+                      <td data-label="Status">
+                        <span 
+                          className="batch-status" 
+                          style={{ 
+                            backgroundColor: `${getStatusColor(batch.status)}20`, 
+                            color: getStatusColor(batch.status) 
+                          }}
+                        >
+                          {batch.status}
+                        </span>
+                      </td>
+                      <td data-label="Daily Eggs">{batch.dailyEggs > 0 ? formatNumber(batch.dailyEggs) : '-'}</td>
+                      <td data-label="Feed/Day">{batch.feedConsumption} kg</td>
+                      <td data-label="Actions">
+                        <div className="batch-actions-icons">
+                          <button 
+                            className="icon-btn" 
+                            onClick={() => handleEditBatch(batch)}
+                            title="Edit Batch"
+                          >
+                            <FiEdit />
+                          </button>
+                          <button 
+                            className="icon-btn delete" 
+                            onClick={() => handleDeleteBatch(batch.id)}
+                            title="Delete Batch"
+                          >
+                            <FiTrash2 />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Mobile Cards View */}
+          <div className="mobile-batches-view">
             {batches.map(batch => (
-              <div key={batch.id} className="batch-card">
-                <div className="batch-header">
-                  <div>
+              <div key={batch.id} className="mobile-batch-card">
+                <div className="mobile-batch-header">
+                  <div className="mobile-batch-title">
                     <h3>{batch.batchName}</h3>
-                    <div className="batch-meta">
-                      <span className="batch-breed">{getBreedDisplayName(batch.breed)}</span>
-                      <span className="batch-date">Acquired: {batch.dateAcquired}</span>
+                    <div className="mobile-batch-meta">
+                      <span className="mobile-batch-breed">{getBreedDisplayName(batch.breed)}</span>
+                      <span className="mobile-batch-date">Acquired: {batch.dateAcquired}</span>
                     </div>
                   </div>
-                  <div className="batch-header-actions">
+                  <div className="mobile-batch-status">
                     <span 
                       className="batch-status" 
-                      style={{ backgroundColor: `${getStatusColor(batch.status)}20`, color: getStatusColor(batch.status) }}
+                      style={{ 
+                        backgroundColor: `${getStatusColor(batch.status)}20`, 
+                        color: getStatusColor(batch.status) 
+                      }}
                     >
                       {batch.status}
                     </span>
-                    <div className="batch-actions-icons">
-                      <button 
-                        className="icon-btn" 
-                        onClick={() => handleEditBatch(batch)}
-                        title="Edit Batch"
-                      >
-                        <FiEdit />
-                      </button>
-                      <button 
-                        className="icon-btn delete" 
-                        onClick={() => handleDeleteBatch(batch.id)}
-                        title="Delete Batch"
-                      >
-                        <FiTrash2 />
-                      </button>
+                  </div>
+                </div>
+                
+                <div className="mobile-batch-details">
+                  <div className="mobile-detail-row">
+                    <div className="mobile-detail-item">
+                      <span className="mobile-detail-label">Quantity:</span>
+                      <span className="mobile-detail-value">{formatNumber(batch.quantity)} birds</span>
+                    </div>
+                    <div className="mobile-detail-item">
+                      <span className="mobile-detail-label">House:</span>
+                      <span className="mobile-detail-value">{batch.house}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="mobile-detail-row">
+                    <div className="mobile-detail-item">
+                      <span className="mobile-detail-label">Age:</span>
+                      <span className="mobile-detail-value">{batch.age} weeks</span>
+                    </div>
+                    <div className="mobile-detail-item">
+                      <span className="mobile-detail-label">Source:</span>
+                      <span className="mobile-detail-value">{batch.source}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="mobile-detail-row">
+                    <div className="mobile-detail-item">
+                      <span className="mobile-detail-label">Daily Eggs:</span>
+                      <span className="mobile-detail-value">{batch.dailyEggs > 0 ? formatNumber(batch.dailyEggs) : '-'}</span>
+                    </div>
+                    <div className="mobile-detail-item">
+                      <span className="mobile-detail-label">Feed/Day:</span>
+                      <span className="mobile-detail-value">{batch.feedConsumption} kg</span>
                     </div>
                   </div>
                 </div>
                 
-                <div className="batch-details">
-                  <div className="batch-detail">
-                    <span className="detail-label">Quantity:</span>
-                    <span className="detail-value">{formatNumber(batch.quantity)} birds</span>
-                  </div>
-                  <div className="batch-detail">
-                    <span className="detail-label">House:</span>
-                    <span className="detail-value">{batch.house}</span>
-                  </div>
-                  <div className="batch-detail">
-                    <span className="detail-label">Age:</span>
-                    <span className="detail-value">{batch.age} weeks</span>
-                  </div>
-                  <div className="batch-detail">
-                    <span className="detail-label">Source:</span>
-                    <span className="detail-value">{batch.source}</span>
-                  </div>
-                  {batch.breed === 'layer' && (
-                    <div className="batch-detail">
-                      <span className="detail-label">Daily Eggs:</span>
-                      <span className="detail-value">{formatNumber(batch.dailyEggs)}</span>
-                    </div>
-                  )}
-                  <div className="batch-detail">
-                    <span className="detail-label">Feed/Day:</span>
-                    <span className="detail-value">{batch.feedConsumption} kg</span>
-                  </div>
-                </div>
-
-                <div className="batch-actions">
+                <div className="mobile-batch-actions">
+                  <button 
+                    className="btn btn-sm btn-secondary" 
+                    onClick={() => handleEditBatch(batch)}
+                  >
+                    <FiEdit /> Edit
+                  </button>
+                  <button 
+                    className="btn btn-sm btn-secondary delete" 
+                    onClick={() => handleDeleteBatch(batch.id)}
+                  >
+                    <FiTrash2 /> Delete
+                  </button>
                   <button className="btn btn-sm btn-primary">View Details</button>
-                  <button className="btn btn-sm btn-secondary">Record Eggs</button>
-                  <button className="btn btn-sm btn-secondary">Update Health</button>
                 </div>
               </div>
             ))}
@@ -280,36 +357,84 @@ const Poultry = () => {
         </div>
 
         <div className="section">
-          <h2>Daily Production</h2>
-          <div className="production-table">
-            <table>
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Batch</th>
-                  <th>House</th>
-                  <th>Breed</th>
-                  <th>Eggs Collected</th>
-                  <th>Damaged Eggs</th>
-                  <th>Feed Consumed (kg)</th>
-                  <th>Water (L)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {batches.filter(b => b.breed === 'layer' || b.breed === 'dual').map(batch => (
-                  <tr key={batch.id}>
-                    <td>2024-01-15</td>
-                    <td>{batch.batchName}</td>
-                    <td>{batch.house}</td>
-                    <td>{getBreedDisplayName(batch.breed)}</td>
-                    <td>{batch.dailyEggs}</td>
-                    <td>{Math.round(batch.dailyEggs * 0.01)}</td>
-                    <td>{batch.feedConsumption}</td>
-                    <td>{Math.round(batch.quantity * 0.3)}</td>
+          <div className="section-header">
+            <h2>Daily Production</h2>
+            <div className="table-summary">
+              <span>Showing {batches.filter(b => b.breed === 'layer' || b.breed === 'dual').length} batches</span>
+            </div>
+          </div>
+          
+          {/* Desktop Production Table */}
+          <div className="production-table desktop-view">
+            <div className="table-container">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Batch</th>
+                    <th>House</th>
+                    <th>Breed</th>
+                    <th>Eggs Collected</th>
+                    <th>Damaged Eggs</th>
+                    <th>Feed Consumed (kg)</th>
+                    <th>Water (L)</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {batches.filter(b => b.breed === 'layer' || b.breed === 'dual').map(batch => (
+                    <tr key={batch.id}>
+                      <td data-label="Date">2024-01-15</td>
+                      <td data-label="Batch">{batch.batchName}</td>
+                      <td data-label="House">{batch.house}</td>
+                      <td data-label="Breed">{getBreedDisplayName(batch.breed)}</td>
+                      <td data-label="Eggs Collected">{batch.dailyEggs}</td>
+                      <td data-label="Damaged Eggs">{Math.round(batch.dailyEggs * 0.01)}</td>
+                      <td data-label="Feed Consumed">{batch.feedConsumption}</td>
+                      <td data-label="Water">{Math.round(batch.quantity * 0.3)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Mobile Production Cards */}
+          <div className="mobile-production-view">
+            {batches.filter(b => b.breed === 'layer' || b.breed === 'dual').map(batch => (
+              <div key={batch.id} className="mobile-production-card">
+                <div className="mobile-production-header">
+                  <h4>{batch.batchName}</h4>
+                  <span className="mobile-production-breed">{getBreedDisplayName(batch.breed)}</span>
+                </div>
+                
+                <div className="mobile-production-details">
+                  <div className="mobile-production-item">
+                    <span className="label">Date:</span>
+                    <span className="value">2024-01-15</span>
+                  </div>
+                  <div className="mobile-production-item">
+                    <span className="label">House:</span>
+                    <span className="value">{batch.house}</span>
+                  </div>
+                  <div className="mobile-production-item">
+                    <span className="label">Eggs Collected:</span>
+                    <span className="value">{batch.dailyEggs}</span>
+                  </div>
+                  <div className="mobile-production-item">
+                    <span className="label">Damaged Eggs:</span>
+                    <span className="value">{Math.round(batch.dailyEggs * 0.01)}</span>
+                  </div>
+                  <div className="mobile-production-item">
+                    <span className="label">Feed Consumed:</span>
+                    <span className="value">{batch.feedConsumption} kg</span>
+                  </div>
+                  <div className="mobile-production-item">
+                    <span className="label">Water:</span>
+                    <span className="value">{Math.round(batch.quantity * 0.3)} L</span>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

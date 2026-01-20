@@ -8,12 +8,11 @@ const PondModal = ({ isOpen, onClose, onSave, pond }) => {
     dateCreated: '',
     length: '',
     width: '',
-    depth: '',
-    capacity: '',
+    estimatedFish: '',
     breed: 'catfish',
-    waterSource: 'borehole',
-    status: 'active',
   });
+
+  const [calculatedArea, setCalculatedArea] = useState(0);
 
   useEffect(() => {
     if (pond) {
@@ -22,12 +21,15 @@ const PondModal = ({ isOpen, onClose, onSave, pond }) => {
         dateCreated: pond.dateCreated || new Date().toISOString().split('T')[0],
         length: pond.length || '',
         width: pond.width || '',
-        depth: pond.depth || '',
-        capacity: pond.capacity || '',
+        estimatedFish: pond.estimatedFish || '',
         breed: pond.breed || 'catfish',
-        waterSource: pond.waterSource || 'borehole',
-        status: pond.status || 'active',
       });
+      
+      // Calculate area if dimensions exist
+      if (pond.length && pond.width) {
+        const area = parseFloat(pond.length) * parseFloat(pond.width);
+        setCalculatedArea(area);
+      }
     } else {
       // Reset form for new pond
       setFormData({
@@ -35,12 +37,10 @@ const PondModal = ({ isOpen, onClose, onSave, pond }) => {
         dateCreated: new Date().toISOString().split('T')[0],
         length: '',
         width: '',
-        depth: '',
-        capacity: '',
+        estimatedFish: '',
         breed: 'catfish',
-        waterSource: 'borehole',
-        status: 'active',
       });
+      setCalculatedArea(0);
     }
   }, [pond]);
 
@@ -50,19 +50,55 @@ const PondModal = ({ isOpen, onClose, onSave, pond }) => {
       ...prev,
       [name]: value
     }));
+
+    // Calculate area when dimensions change
+    if (name === 'length' || name === 'width') {
+      const lengthValue = name === 'length' ? parseFloat(value) || 0 : parseFloat(formData.length) || 0;
+      const widthValue = name === 'width' ? parseFloat(value) || 0 : parseFloat(formData.width) || 0;
+      const area = lengthValue * widthValue;
+      setCalculatedArea(area);
+    }
   };
 
-  const calculateCapacity = () => {
+  const getRecommendedCapacity = () => {
     const length = parseFloat(formData.length) || 0;
     const width = parseFloat(formData.width) || 0;
-    const depth = parseFloat(formData.depth) || 0;
     
-    if (length && width && depth) {
-      // Formula: length × width × depth (in meters) × 1000 = approximate fish capacity
-      const volume = length * width * depth;
-      const capacity = Math.round(volume * 1000); // Rough estimate: 1000 fish per cubic meter
-      setFormData(prev => ({ ...prev, capacity: capacity.toString() }));
+    if (length && width) {
+      const area = length * width;
+      
+      // Adjust density based on breed for recommendation
+      let densityFactor = 1.5; // default: 1 fish per 1.5 sq ft
+      
+      switch(formData.breed) {
+        case 'catfish':
+          densityFactor = 1.2; // catfish can be stocked more densely
+          break;
+        case 'tilapia':
+          densityFactor = 1.5;
+          break;
+        case 'carp':
+          densityFactor = 2; // carp need more space
+          break;
+        case 'salmon':
+          densityFactor = 3; // salmon need more space
+          break;
+        case 'trout':
+          densityFactor = 2.5;
+          break;
+        case 'bass':
+          densityFactor = 2;
+          break;
+        case 'mackerel':
+          densityFactor = 1.8;
+          break;
+        default:
+          densityFactor = 1.5;
+      }
+      
+      return Math.round(area / densityFactor);
     }
+    return 0;
   };
 
   const handleSubmit = (e) => {
@@ -83,14 +119,7 @@ const PondModal = ({ isOpen, onClose, onSave, pond }) => {
     'others'
   ];
 
-  const waterSources = [
-    'borehole',
-    'river',
-    'stream',
-    'rainwater',
-    'municipal',
-    'other'
-  ];
+  const recommendedCapacity = getRecommendedCapacity();
 
   return (
     <div className="modal-overlay">
@@ -148,96 +177,57 @@ const PondModal = ({ isOpen, onClose, onSave, pond }) => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="waterSource">Water Source</label>
-                <select
-                  id="waterSource"
-                  name="waterSource"
-                  value={formData.waterSource}
-                  onChange={handleChange}
-                >
-                  {waterSources.map(source => (
-                    <option key={source} value={source}>
-                      {source.charAt(0).toUpperCase() + source.slice(1)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="length">Length (meters) *</label>
+                <label htmlFor="length">Length (feet) *</label>
                 <input
                   type="number"
                   id="length"
                   name="length"
                   value={formData.length}
                   onChange={handleChange}
-                  onBlur={calculateCapacity}
-                  placeholder="e.g., 10"
+                  placeholder="e.g., 30"
                   min="1"
-                  step="0.1"
+                  step="0.5"
                   required
                 />
               </div>
 
               <div className="form-group">
-                <label htmlFor="width">Width (meters) *</label>
+                <label htmlFor="width">Width (feet) *</label>
                 <input
                   type="number"
                   id="width"
                   name="width"
                   value={formData.width}
                   onChange={handleChange}
-                  onBlur={calculateCapacity}
-                  placeholder="e.g., 5"
+                  placeholder="e.g., 15"
                   min="1"
-                  step="0.1"
+                  step="0.5"
                   required
                 />
               </div>
 
               <div className="form-group">
-                <label htmlFor="depth">Depth (meters) *</label>
+                <label htmlFor="estimatedFish">Estimated Fish Capacity *</label>
                 <input
                   type="number"
-                  id="depth"
-                  name="depth"
-                  value={formData.depth}
+                  id="estimatedFish"
+                  name="estimatedFish"
+                  value={formData.estimatedFish}
                   onChange={handleChange}
-                  onBlur={calculateCapacity}
-                  placeholder="e.g., 1.5"
-                  min="0.5"
-                  step="0.1"
+                  placeholder="Enter number of fish"
+                  min="1"
                   required
                 />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="capacity">Estimated Capacity (fish)</label>
-                <input
-                  type="number"
-                  id="capacity"
-                  name="capacity"
-                  value={formData.capacity}
-                  onChange={handleChange}
-                  placeholder="Auto-calculated"
-                  readOnly
-                />
-                <small className="form-help">Calculated based on dimensions</small>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="status">Status</label>
-                <select
-                  id="status"
-                  name="status"
-                  value={formData.status}
-                  onChange={handleChange}
-                >
-                  <option value="active">Active</option>
-                  <option value="maintenance">Maintenance</option>
-                  <option value="empty">Empty</option>
-                  <option value="harvesting">Ready for Harvest</option>
-                </select>
+                <div className="form-info">
+                  <div className="area-info">
+                    Pond Area: {calculatedArea.toFixed(1)} sq ft
+                  </div>
+                  {calculatedArea > 0 && (
+                    <div className="recommendation">
+                      Recommended for {formData.breed}: ~{recommendedCapacity} fish
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>

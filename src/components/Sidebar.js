@@ -3,22 +3,23 @@ import { NavLink } from 'react-router-dom';
 import { 
   FiHome, FiFeather, FiGitMerge, 
   FiDollarSign, FiTrendingUp, FiBarChart2, 
-  FiSettings, FiMenu, FiChevronLeft, FiX
+  FiSettings, FiMenu, FiChevronLeft,FiPackage
 } from 'react-icons/fi';
 import { FaFish, FaEgg } from 'react-icons/fa';
 import './Sidebar.css';
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
-  const menuItems = [
-    { path: '/dashboard', icon: <FiHome />, label: 'Dashboard' },
-    { path: '/fish-farming', icon: <FaFish />, label: 'Fish Farming' },
-    { path: '/poultry', icon: <FiFeather />, label: 'Poultry' },
-    { path: '/livestock', icon: <FiGitMerge />, label: 'Livestock' },
-    { path: '/expenses', icon: <FiDollarSign />, label: 'Expenses' },
-    { path: '/investments', icon: <FiTrendingUp />, label: 'Investments' },
-    { path: '/reports', icon: <FiBarChart2 />, label: 'Reports' },
-    { path: '/settings', icon: <FiSettings />, label: 'Settings' },
-  ];
+const menuItems = [
+  { path: '/dashboard', icon: <FiHome />, label: 'Dashboard' },
+  { path: '/fish-farming', icon: <FaFish />, label: 'Fish Farming' },
+  { path: '/poultry', icon: <FiFeather />, label: 'Poultry' },
+  { path: '/livestock', icon: <FiGitMerge />, label: 'Livestock' },
+  { path: '/equipment', icon: <FiPackage />, label: 'Equipment' }, // New item
+  { path: '/expenses', icon: <FiDollarSign />, label: 'Expenses' },
+  { path: '/investments', icon: <FiTrendingUp />, label: 'Investments' },
+  { path: '/reports', icon: <FiBarChart2 />, label: 'Reports' },
+  { path: '/settings', icon: <FiSettings />, label: 'Settings' },
+];
 
   // Close sidebar on mobile when clicking a link
   const handleNavClick = () => {

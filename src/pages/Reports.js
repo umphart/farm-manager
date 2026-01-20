@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FiDownload, FiFilter, FiPrinter, FiCalendar } from 'react-icons/fi';
-
+import './Reports.css';
 const Reports = () => {
   const [selectedReport, setSelectedReport] = useState('financial');
 
@@ -108,17 +108,20 @@ const Reports = () => {
                       <th>Margin</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    {reportData.financial.map((row, index) => (
-                      <tr key={index}>
-                        <td>{row.month}</td>
-                        <td>{formatCurrency(row.income)}</td>
-                        <td>{formatCurrency(row.expenses)}</td>
-                        <td className="profit">{formatCurrency(row.profit)}</td>
-                        <td className="margin">{((row.profit / row.income) * 100).toFixed(1)}%</td>
-                      </tr>
-                    ))}
-                  </tbody>
+                  
+                 <tbody>
+  {reportData.financial.map((row, index) => (
+    <tr key={index}>
+      <td data-label="Month">{row.month}</td>
+      <td data-label="Income">{formatCurrency(row.income)}</td>
+      <td data-label="Expenses">{formatCurrency(row.expenses)}</td>
+      <td data-label="Profit" className="profit">{formatCurrency(row.profit)}</td>
+      <td data-label="Margin" className="margin">
+        {((row.profit / row.income) * 100).toFixed(1)}%
+      </td>
+    </tr>
+  ))}
+</tbody>
                 </table>
               )}
               

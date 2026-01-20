@@ -1,360 +1,726 @@
+/* Fish Farming Page Styles - Refactored for Responsiveness */
 .fish-farming-page {
-  padding: 20px;
+  padding: 1rem;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
+/* Page Header */
+.page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.page-header h1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+}
+
+.page-header button {
+  width: 100%;
+  max-width: 200px;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background-color: #10b981;
+  color: white;
+  border-color: #10b981;
+}
+
+.btn-primary:hover {
+  background-color: #059669;
+  border-color: #059669;
+}
+
+.btn-secondary {
+  background-color: white;
+  color: #374151;
+  border-color: #d1d5db;
+}
+
+.btn-secondary:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.btn-secondary.delete:hover {
+  background-color: #fee2e2;
+  border-color: #ef4444;
+  color: #dc2626;
+}
+
+.btn-sm {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.8125rem;
+}
+
+/* Fish Stats Grid */
 .fish-stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  margin-bottom: 30px;
+  gap: 1.25rem;
+  margin-bottom: 2rem;
 }
 
 .fish-stat-card {
   background: white;
-  border-radius: var(--border-radius);
-  padding: 20px;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
   display: flex;
   align-items: center;
-  gap: 20px;
-  box-shadow: var(--box-shadow);
+  gap: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.fish-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .fish-stat-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-color) 100%);
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 28px;
+  font-size: 1.5rem;
+  flex-shrink: 0;
 }
 
 .fish-stat-info h3 {
-  font-size: 14px;
-  color: var(--text-light);
-  margin-bottom: 5px;
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0 0 0.25rem 0;
+  font-weight: 500;
 }
 
 .fish-stat-value {
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--dark-color);
-  margin-bottom: 5px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 0.25rem;
 }
 
 .fish-stat-label {
-  font-size: 13px;
-  color: var(--text-light);
+  font-size: 0.75rem;
+  color: #9ca3af;
 }
 
-.ponds-section {
-  background: white;
-  border-radius: var(--border-radius);
-  padding: 25px;
-  margin-bottom: 30px;
-  box-shadow: var(--box-shadow);
-}
-
-.ponds-section h2 {
-  margin-bottom: 20px;
-  color: var(--dark-color);
-}
-
-.ponds-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-}
-
-.pond-card {
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
-  padding: 20px;
-  transition: var(--transition);
-}
-
-.pond-card.active {
-  border-left: 4px solid var(--success-color);
-}
-
-.pond-card.maintenance {
-  border-left: 4px solid var(--warning-color);
-}
-
-.pond-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.pond-header h3 {
-  margin: 0;
-  color: var(--dark-color);
-}
-
-.pond-status {
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-  text-transform: uppercase;
-}
-
-.pond-status.active {
-  background: #e8f5e9;
-  color: var(--success-color);
-}
-
-.pond-status.maintenance {
-  background: #fff3e0;
-  color: var(--warning-color);
-}
-
-.pond-details {
-  display: grid;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.pond-detail {
-  display: flex;
-  justify-content: space-between;
-  font-size: 14px;
-}
-
-.detail-label {
-  color: var(--text-light);
-}
-
-.detail-value {
-  font-weight: 500;
-  color: var(--dark-color);
-}
-
-.water-parameters {
-  background: var(--light-color);
-  padding: 15px;
-  border-radius: var(--border-radius);
-  margin-bottom: 20px;
-}
-
-.water-parameters h4 {
-  margin-bottom: 10px;
-  font-size: 14px;
-  color: var(--text-light);
-}
-
-.parameters-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-}
-
-.parameter {
-  display: flex;
-  justify-content: space-between;
-  font-size: 14px;
-}
-
-.param-label {
-  color: var(--text-light);
-}
-
-.param-value {
-  font-weight: 500;
-  color: var(--dark-color);
-}
-
-.pond-actions {
-  display: flex;
-  gap: 10px;
-}
-
+/* Ponds Section */
+.ponds-section,
 .feeding-schedule {
   background: white;
-  border-radius: var(--border-radius);
-  padding: 25px;
-  box-shadow: var(--box-shadow);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.feeding-schedule h2 {
-  margin-bottom: 20px;
-  color: var(--dark-color);
+.section-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
 }
 
-.schedule-table {
+.section-header h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.table-summary {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.table-summary span {
+  background: #f3f4f6;
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+}
+
+/* Desktop Table Views */
+.ponds-table.desktop-view,
+.schedule-table.desktop-view {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-container {
   overflow-x: auto;
 }
 
-.schedule-table table {
+.data-table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.schedule-table th {
-  background: var(--light-color);
-  padding: 15px;
+.data-table thead {
+  background-color: #f9fafb;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.data-table th {
+  padding: 0.875rem 1rem;
   text-align: left;
   font-weight: 600;
-  color: var(--dark-color);
-  border-bottom: 1px solid var(--border-color);
+  color: #374151;
+  font-size: 0.875rem;
+  white-space: nowrap;
 }
 
-.schedule-table td {
-  padding: 15px;
-  border-bottom: 1px solid var(--border-color);
+.data-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  vertical-align: top;
 }
 
-@media (max-width: 768px) {
-  .ponds-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .parameters-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .pond-actions {
-    flex-direction: column;
-  }
-  
-  .pond-actions .btn {
-    width: 100%;
-  }
+.data-table tbody tr:hover {
+  background-color: #f9fafb;
 }
-/* Fish Farming Page - Additional Styles */
 
-.section-header {
+/* Pond Table Specific */
+.pond-name {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-  gap: 15px;
+  flex-direction: column;
+  gap: 0.375rem;
 }
 
-.pond-summary {
-  display: flex;
-  gap: 20px;
-  font-size: 14px;
-  color: var(--text-light);
-}
-
-.pond-summary span {
-  background: var(--light-color);
-  padding: 6px 12px;
-  border-radius: 20px;
+.pond-name strong {
+  font-size: 0.9375rem;
+  color: #1f2937;
+  font-weight: 600;
 }
 
 .pond-meta {
   display: flex;
-  gap: 15px;
-  margin-top: 5px;
-  font-size: 13px;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.pond-date,
+.pond-source {
+  font-size: 0.8125rem;
+  color: #6b7280;
 }
 
 .pond-breed {
-  background: #e3f2fd;
-  color: #1976d2;
-  padding: 3px 10px;
-  border-radius: 12px;
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
   font-weight: 500;
+  background-color: #dbeafe;
+  color: #1e40af;
 }
 
-.pond-date {
-  color: var(--text-light);
-}
-
-.pond-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.pond-status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  display: inline-block;
+  text-transform: capitalize;
 }
 
 .pond-actions-icons {
   display: flex;
-  gap: 5px;
+  gap: 0.5rem;
 }
 
 .icon-btn {
-  background: none;
-  border: none;
-  padding: 6px;
-  border-radius: 4px;
-  color: var(--text-light);
-  cursor: pointer;
-  transition: var(--transition);
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.375rem;
+  border: 1px solid #d1d5db;
+  background: white;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 0;
 }
 
 .icon-btn:hover {
-  background: var(--light-color);
-  color: var(--dark-color);
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+  color: #374151;
 }
 
 .icon-btn.delete:hover {
-  background: #ffebee;
-  color: #f44336;
+  background-color: #fee2e2;
+  border-color: #ef4444;
+  color: #dc2626;
 }
 
-.pond-details {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px;
-  margin: 15px 0;
+/* Mobile Views */
+.mobile-ponds-view,
+.mobile-feeding-view {
+  display: none;
 }
 
-.pond-detail {
+/* Mobile Pond Cards */
+.mobile-pond-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.mobile-pond-card:last-child {
+  margin-bottom: 0;
+}
+
+.mobile-pond-header {
   display: flex;
   justify-content: space-between;
-  font-size: 14px;
-  padding: 8px 0;
-  border-bottom: 1px solid #f5f5f5;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f3f4f6;
 }
 
-.pond-detail:last-child {
+.mobile-pond-title h3 {
+  margin: 0 0 0.25rem 0;
+  color: #1f2937;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.mobile-pond-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.mobile-pond-breed {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background-color: #dbeafe;
+  color: #1e40af;
+  width: fit-content;
+}
+
+.mobile-pond-date {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.mobile-pond-status {
+  text-align: right;
+}
+
+.mobile-pond-details {
+  margin-bottom: 1rem;
+}
+
+.mobile-detail-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.mobile-detail-row:last-child {
+  margin-bottom: 0;
+}
+
+.mobile-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.mobile-detail-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.mobile-detail-value {
+  font-size: 0.875rem;
+  color: #1f2937;
+  font-weight: 500;
+}
+
+.mobile-water-parameters {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f3f4f6;
+}
+
+.mobile-water-parameters h4 {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 600;
+  margin: 0 0 0.75rem 0;
+}
+
+.mobile-parameters-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.mobile-parameter {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem;
+  background: #f8fafc;
+  border-radius: 0.375rem;
+}
+
+.mobile-param-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.mobile-param-value {
+  font-size: 0.875rem;
+  color: #1f2937;
+  font-weight: 500;
+}
+
+.mobile-pond-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #f3f4f6;
+}
+
+.mobile-pond-actions .btn {
+  width: 100%;
+}
+
+/* Mobile Feeding Cards */
+.mobile-feeding-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.mobile-feeding-card:last-child {
+  margin-bottom: 0;
+}
+
+.mobile-feeding-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.mobile-feeding-header h4 {
+  margin: 0;
+  font-size: 1rem;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.mobile-feeding-breed {
+  font-size: 0.75rem;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+}
+
+.mobile-feeding-details {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+.mobile-feeding-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px dashed #f3f4f6;
+}
+
+.mobile-feeding-item:last-child {
   border-bottom: none;
 }
 
-.pond-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 15px;
+.mobile-feeding-item .label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: 500;
 }
 
-/* Responsive Design */
+.mobile-feeding-item .value {
+  font-size: 0.875rem;
+  color: #1f2937;
+  font-weight: 500;
+  text-align: right;
+}
+
+/* Responsive Breakpoints */
+
+/* Mobile (up to 768px) */
 @media (max-width: 768px) {
-  .section-header {
+  .fish-farming-page {
+    padding: 0.75rem;
+  }
+  
+  .page-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .page-header button {
+    max-width: none;
+  }
+  
+  .fish-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .fish-stat-card {
+    padding: 1.25rem;
+  }
+  
+  .fish-stat-icon {
+    width: 3rem;
+    height: 3rem;
+    font-size: 1.25rem;
+  }
+  
+  .fish-stat-value {
+    font-size: 1.25rem;
+  }
+  
+  .ponds-section,
+  .feeding-schedule {
+    padding: 1.25rem;
+  }
+  
+  /* Hide desktop views, show mobile views */
+  .ponds-table.desktop-view,
+  .schedule-table.desktop-view {
+    display: none;
+  }
+  
+  .mobile-ponds-view,
+  .mobile-feeding-view {
+    display: block;
+  }
+  
+  /* Mobile table responsiveness */
+  .data-table {
+    display: block;
+    overflow-x: auto;
+  }
+  
+  .data-table thead,
+  .data-table tbody,
+  .data-table th,
+  .data-table td,
+  .data-table tr {
+    display: block;
+  }
+  
+  .data-table thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+  
+  .data-table tr {
+    border: 1px solid #e5e7eb;
+    margin-bottom: 0.75rem;
+    border-radius: 0.5rem;
+  }
+  
+  .data-table td {
+    border: none;
+    border-bottom: 1px solid #e5e7eb;
+    position: relative;
+    padding-left: 50%;
+    text-align: right;
+  }
+  
+  .data-table td:before {
+    content: attr(data-label);
+    position: absolute;
+    left: 1rem;
+    width: 45%;
+    padding-right: 0.5rem;
+    text-align: left;
+    font-weight: 600;
+    color: #374151;
+  }
+  
+  .data-table td:last-child {
+    border-bottom: none;
+  }
+  
+  .table-summary {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .mobile-detail-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
+  .mobile-parameters-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
+  .mobile-feeding-item {
     flex-direction: column;
     align-items: flex-start;
+    gap: 0.25rem;
   }
   
-  .pond-summary {
-    flex-direction: column;
-    gap: 8px;
-  }
-  
-  .pond-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 15px;
-  }
-  
-  .pond-header-actions {
+  .mobile-feeding-item .value {
+    text-align: left;
     width: 100%;
+  }
+}
+
+/* Tablet (769px to 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .fish-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .table-summary {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  /* Show desktop views */
+  .ponds-table.desktop-view,
+  .schedule-table.desktop-view {
+    display: block;
+  }
+  
+  .mobile-ponds-view,
+  .mobile-feeding-view {
+    display: none;
+  }
+  
+  .data-table th,
+  .data-table td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.8125rem;
+  }
+}
+
+/* Desktop (1025px and above) */
+@media (min-width: 1025px) {
+  .page-header {
+    flex-direction: row;
+    align-items: center;
     justify-content: space-between;
   }
   
-  .pond-actions {
-    flex-direction: column;
+  .page-header button {
+    width: auto;
+    max-width: 200px;
   }
   
-  .pond-actions .btn {
-    width: 100%;
+  .fish-stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .table-summary {
+    flex-direction: row;
+  }
+  
+  /* Show desktop views */
+  .ponds-table.desktop-view,
+  .schedule-table.desktop-view {
+    display: block;
+  }
+  
+  .mobile-ponds-view,
+  .mobile-feeding-view {
+    display: none;
+  }
+  
+  .data-table {
+    min-width: 100%;
+  }
+}
+
+/* Large Desktop (1280px and above) */
+@media (min-width: 1280px) {
+  .fish-farming-page {
+    padding: 2.5rem;
+  }
+  
+  .fish-stat-card {
+    padding: 2rem;
+  }
+  
+  .fish-stat-icon {
+    width: 4rem;
+    height: 4rem;
+    font-size: 1.75rem;
+  }
+  
+  .fish-stat-value {
+    font-size: 1.75rem;
+  }
+  
+  .ponds-section,
+  .feeding-schedule {
+    padding: 2rem;
+  }
+  
+  .section-header h2 {
+    font-size: 1.5rem;
   }
 }

@@ -9,6 +9,7 @@ import Livestock from './pages/Livestock';
 import Expenses from './pages/Expenses';
 import Investments from './pages/Investments';
 import Reports from './pages/Reports';
+import Equipment from './pages/Equipment';
 import Settings from './pages/Settings';
 import './App.css';
 
@@ -30,6 +31,7 @@ function App() {
               <Route path="/expenses" element={<Expenses />} />
               <Route path="/investments" element={<Investments />} />
               <Route path="/reports" element={<Reports />} />
+              <Route path="/equipment" element={<Equipment />} />
               <Route path="/settings" element={<Settings />} />
             </Routes>
           </main>

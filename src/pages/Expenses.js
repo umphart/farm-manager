@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FiPlus, FiFilter, FiDownload, FiEdit, FiTrash2, FiCalendar, FiDollarSign } from 'react-icons/fi';
+import { FiPlus, FiFilter, FiDownload, FiEdit, FiTrash2, FiCalendar, FiDollarSign, FiRefreshCw } from 'react-icons/fi';
 import { useToast } from '../contexts/ToastContext';
 import ExpenseModal from '../components/ExpenseModal';
 import './Expenses.css';
@@ -109,7 +109,7 @@ const Expenses = () => {
 
   const calculateAverageDaily = () => {
     const monthly = calculateMonthlyExpenses();
-    return monthly / 30;
+    return Math.round(monthly / 30);
   };
 
   const getCategoryDisplay = (category) => {
@@ -199,6 +199,7 @@ const Expenses = () => {
       dateFrom: '',
       dateTo: '',
     });
+    showSuccess('Filters reset successfully!');
   };
 
   const handleExportData = () => {
@@ -228,20 +229,59 @@ const Expenses = () => {
     { value: 'administration', label: 'Administration' }
   ];
 
+  // Calculate category breakdown for chart
+  const categoryBreakdown = categories
+    .filter(cat => cat.value !== 'all')
+    .map(category => {
+      const categoryTotal = filteredExpenses
+        .filter(exp => exp.category === category.value)
+        .reduce((sum, exp) => sum + exp.amount, 0);
+      
+      return {
+        ...category,
+        total: categoryTotal,
+        percentage: calculateTotalExpenses() > 0 
+          ? (categoryTotal / calculateTotalExpenses() * 100).toFixed(1)
+          : 0
+      };
+    })
+    .filter(cat => cat.total > 0)
+    .sort((a, b) => b.total - a.total);
+
+  // Calculate section breakdown for chart
+  const sectionBreakdown = farmSections
+    .filter(section => section.value !== 'all')
+    .map(section => {
+      const sectionTotal = filteredExpenses
+        .filter(exp => exp.farmSection === section.value)
+        .reduce((sum, exp) => sum + exp.amount, 0);
+      
+      return {
+        ...section,
+        total: sectionTotal,
+        percentage: calculateTotalExpenses() > 0 
+          ? (sectionTotal / calculateTotalExpenses() * 100).toFixed(1)
+          : 0
+      };
+    })
+    .filter(section => section.total > 0)
+    .sort((a, b) => b.total - a.total);
+
   return (
     <div className="expenses-page">
       <div className="page-header">
         <h1>Expense Management</h1>
         <div className="header-actions">
           <button className="btn btn-primary" onClick={handleAddExpense}>
-            <FiPlus /> Add Expense
+            <FiPlus /> Add New Expense
           </button>
           <button className="btn btn-secondary" onClick={handleExportData}>
-            <FiDownload /> Export
+            <FiDownload /> Export Data
           </button>
         </div>
       </div>
 
+      {/* Summary Cards */}
       <div className="expenses-summary">
         <div className="summary-card">
           <div className="summary-icon">
@@ -250,7 +290,7 @@ const Expenses = () => {
           <div className="summary-content">
             <h3>Total Expenses</h3>
             <div className="summary-value">{formatCurrency(calculateTotalExpenses())}</div>
-            <div className="summary-label">All Time</div>
+            <div className="summary-label">All Time Records</div>
           </div>
         </div>
         
@@ -261,7 +301,7 @@ const Expenses = () => {
           <div className="summary-content">
             <h3>Monthly Expenses</h3>
             <div className="summary-value">{formatCurrency(calculateMonthlyExpenses())}</div>
-            <div className="summary-label">This Month</div>
+            <div className="summary-label">Current Month</div>
           </div>
         </div>
         
@@ -272,7 +312,7 @@ const Expenses = () => {
           <div className="summary-content">
             <h3>Average Daily</h3>
             <div className="summary-value">{formatCurrency(calculateAverageDaily())}</div>
-            <div className="summary-label">Per Day</div>
+            <div className="summary-label">Per Day Average</div>
           </div>
         </div>
         
@@ -281,71 +321,79 @@ const Expenses = () => {
             <FiFilter />
           </div>
           <div className="summary-content">
-            <h3>Total Records</h3>
+            <h3>Active Records</h3>
             <div className="summary-value">{expenses.length}</div>
-            <div className="summary-label">Expense Records</div>
+            <div className="summary-label">Expense Entries</div>
           </div>
         </div>
       </div>
 
+      {/* Filters Section */}
       <div className="filters-section">
-        <div className="filter-group">
-          <label>Category:</label>
-          <select 
-            className="filter-select"
-            value={filters.category}
-            onChange={(e) => handleFilterChange('category', e.target.value)}
-          >
-            {categories.map(cat => (
-              <option key={cat.value} value={cat.value}>{cat.label}</option>
-            ))}
-          </select>
-        </div>
-        
-        <div className="filter-group">
-          <label>Farm Section:</label>
-          <select 
-            className="filter-select"
-            value={filters.farmSection}
-            onChange={(e) => handleFilterChange('farmSection', e.target.value)}
-          >
-            {farmSections.map(section => (
-              <option key={section.value} value={section.value}>{section.label}</option>
-            ))}
-          </select>
-        </div>
-        
-        <div className="filter-group">
-          <label>Date From:</label>
-          <input 
-            type="date" 
-            className="filter-select"
-            value={filters.dateFrom}
-            onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
-          />
-        </div>
-        
-        <div className="filter-group">
-          <label>Date To:</label>
-          <input 
-            type="date" 
-            className="filter-select"
-            value={filters.dateTo}
-            onChange={(e) => handleFilterChange('dateTo', e.target.value)}
-          />
+        <div className="filter-row">
+          <div className="filter-group">
+            <label htmlFor="category">Category</label>
+            <select 
+              id="category"
+              className="filter-select"
+              value={filters.category}
+              onChange={(e) => handleFilterChange('category', e.target.value)}
+            >
+              {categories.map(cat => (
+                <option key={cat.value} value={cat.value}>{cat.label}</option>
+              ))}
+            </select>
+          </div>
+          
+          <div className="filter-group">
+            <label htmlFor="farmSection">Farm Section</label>
+            <select 
+              id="farmSection"
+              className="filter-select"
+              value={filters.farmSection}
+              onChange={(e) => handleFilterChange('farmSection', e.target.value)}
+            >
+              {farmSections.map(section => (
+                <option key={section.value} value={section.value}>{section.label}</option>
+              ))}
+            </select>
+          </div>
+          
+          <div className="filter-group">
+            <label htmlFor="dateFrom">Date From</label>
+            <input 
+              id="dateFrom"
+              type="date" 
+              className="filter-select"
+              value={filters.dateFrom}
+              onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
+            />
+          </div>
+          
+          <div className="filter-group">
+            <label htmlFor="dateTo">Date To</label>
+            <input 
+              id="dateTo"
+              type="date" 
+              className="filter-select"
+              value={filters.dateTo}
+              onChange={(e) => handleFilterChange('dateTo', e.target.value)}
+            />
+          </div>
         </div>
         
         <div className="filter-actions">
-          <button className="btn btn-secondary" onClick={handleResetFilters}>
-            Reset Filters
-          </button>
           <div className="filter-info">
-            Showing {filteredExpenses.length} of {expenses.length} expenses
+            Showing {filteredExpenses.length} of {expenses.length} expense records
           </div>
+          <button className="btn btn-secondary" onClick={handleResetFilters}>
+            <FiRefreshCw /> Reset Filters
+          </button>
         </div>
       </div>
 
-      <div className="expenses-table-container">
+      {/* Desktop Table View */}
+      <div className="desktop-table">
         <table className="expenses-table">
           <thead>
             <tr>
@@ -392,18 +440,18 @@ const Expenses = () => {
                   <span className="receipt-number">{expense.receiptNo || '-'}</span>
                 </td>
                 <td>
-                  <div className="action-buttons">
+                  <div className="table-actions">
                     <button 
                       className="icon-btn" 
                       onClick={() => handleEditExpense(expense)}
-                      title="Edit"
+                      title="Edit Expense"
                     >
                       <FiEdit />
                     </button>
                     <button 
                       className="icon-btn delete" 
                       onClick={() => handleDeleteExpense(expense.id)}
-                      title="Delete"
+                      title="Delete Expense"
                     >
                       <FiTrash2 />
                     </button>
@@ -415,65 +463,113 @@ const Expenses = () => {
         </table>
       </div>
 
+      {/* Mobile Card View */}
+      <div className="mobile-card-view">
+        {filteredExpenses.map(expense => (
+          <div key={expense.id} className="expense-card">
+            <div className="expense-card-header">
+              <div className="expense-card-date">
+                <div className="date-day">{formatDate(expense.date)}</div>
+                <div className="date-weekday">
+                  {new Date(expense.date).toLocaleDateString('en-NG', { weekday: 'long' })}
+                </div>
+              </div>
+              <div className="expense-card-amount">{formatCurrency(expense.amount)}</div>
+            </div>
+            
+            <div className="expense-card-details">
+              <div className="expense-card-row">
+                <span className="expense-card-label">Category:</span>
+                <span className={`category-badge category-${expense.category}`}>
+                  {getCategoryDisplay(expense.category)}
+                </span>
+              </div>
+              
+              <div className="expense-card-row">
+                <span className="expense-card-label">Farm Section:</span>
+                <span className="expense-card-value">
+                  {getFarmSectionDisplay(expense.farmSection)}
+                </span>
+              </div>
+              
+              {expense.receiptNo && (
+                <div className="expense-card-row">
+                  <span className="expense-card-label">Receipt No:</span>
+                  <span className="expense-card-value receipt-number">
+                    {expense.receiptNo}
+                  </span>
+                </div>
+              )}
+            </div>
+            
+            <div className="expense-card-description">
+              <div className="description-main">{expense.description}</div>
+              {expense.notes && (
+                <div className="description-notes">{expense.notes}</div>
+              )}
+            </div>
+            
+            <div className="expense-card-actions">
+              <button 
+                className="icon-btn" 
+                onClick={() => handleEditExpense(expense)}
+                title="Edit Expense"
+              >
+                <FiEdit /> Edit
+              </button>
+              <button 
+                className="icon-btn delete" 
+                onClick={() => handleDeleteExpense(expense.id)}
+                title="Delete Expense"
+              >
+                <FiTrash2 /> Delete
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Charts Section */}
       <div className="expenses-chart">
-        <h3>Expense Breakdown</h3>
+        <h3>Expense Breakdown Analysis</h3>
         <div className="chart-container">
           <div className="chart-summary">
-            <h4>By Category</h4>
+            <h4>Expenses by Category</h4>
             <div className="category-breakdown">
-              {categories.filter(c => c.value !== 'all').map(category => {
-                const categoryTotal = filteredExpenses
-                  .filter(exp => exp.category === category.value)
-                  .reduce((sum, exp) => sum + exp.amount, 0);
-                
-                if (categoryTotal === 0) return null;
-                
-                const percentage = (categoryTotal / calculateTotalExpenses() * 100).toFixed(1);
-                
-                return (
-                  <div key={category.value} className="category-item">
-                    <div className="category-info">
-                      <span className="category-name">{category.label}</span>
-                      <span className="category-amount">{formatCurrency(categoryTotal)}</span>
-                    </div>
-                    <div className="category-bar">
-                      <div 
-                        className="category-fill" 
-                        style={{ width: `${percentage}%` }}
-                      ></div>
-                    </div>
-                    <div className="category-percentage">{percentage}%</div>
+              {categoryBreakdown.map(category => (
+                <div key={category.value} className="category-item">
+                  <div className="category-info">
+                    <span className="category-name">{category.label}</span>
+                    <span className="category-amount">{formatCurrency(category.total)}</span>
                   </div>
-                );
-              })}
+                  <div className="category-bar">
+                    <div 
+                      className="category-fill" 
+                      style={{ width: `${category.percentage}%` }}
+                    ></div>
+                  </div>
+                  <div className="category-percentage">{category.percentage}% of total</div>
+                </div>
+              ))}
             </div>
           </div>
           
           <div className="chart-summary">
-            <h4>By Farm Section</h4>
+            <h4>Expenses by Farm Section</h4>
             <div className="section-breakdown">
-              {farmSections.filter(s => s.value !== 'all').map(section => {
-                const sectionTotal = filteredExpenses
-                  .filter(exp => exp.farmSection === section.value)
-                  .reduce((sum, exp) => sum + exp.amount, 0);
-                
-                if (sectionTotal === 0) return null;
-                
-                return (
-                  <div key={section.value} className="section-item">
-                    <div className="section-name">{section.label}</div>
-                    <div className="section-amount">{formatCurrency(sectionTotal)}</div>
-                    <div className="section-percentage">
-                      {(sectionTotal / calculateTotalExpenses() * 100).toFixed(1)}%
-                    </div>
-                  </div>
-                );
-              })}
+              {sectionBreakdown.map(section => (
+                <div key={section.value} className="section-item">
+                  <div className="section-name">{section.label}</div>
+                  <div className="section-amount">{formatCurrency(section.total)}</div>
+                  <div className="section-percentage">{section.percentage}%</div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </div>
 
+      {/* Expense Modal */}
       <ExpenseModal 
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

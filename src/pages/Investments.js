@@ -236,74 +236,80 @@ const Investments = () => {
         </div>
       </div>
 
-      <div className="investments-table">
-        <div className="section-header">
-          <h2>Recent Investments</h2>
-          <div className="table-summary">
-            <span>Showing {investments.length} investments</span>
+// Update your Investments component table section:
+<div className="investments-table desktop-view">
+  <div className="section-header">
+    <h2>Recent Investments</h2>
+    <div className="table-summary">
+      <span>Showing {investments.length} investments</span>
+    </div>
+  </div>
+  <div className="table-container">
+    <table className="desktop-table">
+      {/* Your existing desktop table structure */}
+    </table>
+  </div>
+</div>
+
+<div className="investments-table mobile-view">
+  <div className="section-header">
+    <h2>Recent Investments</h2>
+    <div className="table-summary">
+      <span>Showing {investments.length} investments</span>
+    </div>
+  </div>
+  <div className="mobile-cards">
+    {investments.map(inv => (
+      <div key={inv.id} className="mobile-card">
+        <div className="mobile-card-header">
+          <div className="mobile-card-title">
+            <strong>{inv.name}</strong>
+            <div className="mobile-card-description">{inv.description}</div>
+          </div>
+          <div className="mobile-card-status">
+            <span className={`status-badge ${getStatusBadgeClass(inv.status)}`}>
+              {getStatusDisplay(inv.status)}
+            </span>
           </div>
         </div>
-        <div className="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Investment</th>
-                <th>Type</th>
-                <th>Date</th>
-                <th>Amount</th>
-                <th>ROI</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {investments.map(inv => (
-                <tr key={inv.id}>
-                  <td>
-                    <div className="investment-name">
-                      <strong>{inv.name}</strong>
-                      {inv.description && (
-                        <div className="investment-description">{inv.description}</div>
-                      )}
-                    </div>
-                  </td>
-                  <td>
-                    <span className={`type-badge type-${inv.type.toLowerCase()}`}>
-                      {inv.type}
-                    </span>
-                  </td>
-                  <td>{inv.date}</td>
-                  <td className="amount">{formatCurrency(inv.amount)}</td>
-                  <td className="roi">{inv.expectedROI}%</td>
-                  <td>
-                    <span className={`status-badge ${getStatusBadgeClass(inv.status)}`}>
-                      {getStatusDisplay(inv.status)}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="action-buttons">
-                      <button 
-                        className="icon-btn" 
-                        onClick={() => handleEditInvestment(inv)}
-                        title="Edit"
-                      >
-                        <FiEdit />
-                      </button>
-                      <button 
-                        className="icon-btn delete" 
-                        onClick={() => handleDeleteInvestment(inv.id)}
-                        title="Delete"
-                      >
-                        <FiTrash2 />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="mobile-card-details">
+          <div className="mobile-detail-item">
+            <span className="mobile-detail-label">Type</span>
+            <span className={`type-badge type-${inv.type.toLowerCase()}`}>
+              {inv.type}
+            </span>
+          </div>
+          <div className="mobile-detail-item">
+            <span className="mobile-detail-label">Date</span>
+            <span className="mobile-detail-value">{inv.date}</span>
+          </div>
+          <div className="mobile-detail-item">
+            <span className="mobile-detail-label">Amount</span>
+            <span className="mobile-detail-value amount">{formatCurrency(inv.amount)}</span>
+          </div>
+          <div className="mobile-detail-item">
+            <span className="mobile-detail-label">ROI</span>
+            <span className="mobile-detail-value roi">{inv.expectedROI}%</span>
+          </div>
+        </div>
+        <div className="mobile-card-actions">
+          <button 
+            className="btn btn-secondary" 
+            onClick={() => handleEditInvestment(inv)}
+          >
+            <FiEdit /> Edit
+          </button>
+          <button 
+            className="btn btn-secondary delete" 
+            onClick={() => handleDeleteInvestment(inv.id)}
+          >
+            <FiTrash2 /> Delete
+          </button>
         </div>
       </div>
+    ))}
+  </div>
+</div>
 
       <div className="roi-calculator">
         <h2>ROI Calculator</h2>
