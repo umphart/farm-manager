@@ -1,37 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import { FiX } from 'react-icons/fi';
+import { supabase } from '../lib/supabase';
 import './Modal.css';
 
 const PoultryBatchModal = ({ isOpen, onClose, onSave, batch }) => {
   const [formData, setFormData] = useState({
-    batchName: '',
-    dateAcquired: '',
+    batch_name: '',
+    date_acquired: '',
     breed: 'layer',
     quantity: '',
-    age: '',
-    expectedProductionDate: '',
+    expected_production_date: '',
   });
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (batch) {
       setFormData({
-        batchName: batch.batchName || '',
-        dateAcquired: batch.dateAcquired || new Date().toISOString().split('T')[0],
+        batch_name: batch.batchName || '',
+        date_acquired: batch.dateAcquired || new Date().toISOString().split('T')[0],
         breed: batch.breed || 'layer',
         quantity: batch.quantity || '',
-        age: batch.age || '',
-        expectedProductionDate: batch.expectedProductionDate || '',
+        expected_production_date: batch.expectedProductionDate || '',
       });
     } else {
       setFormData({
-        batchName: '',
-        dateAcquired: new Date().toISOString().split('T')[0],
+        batch_name: '',
+        date_acquired: new Date().toISOString().split('T')[0],
         breed: 'layer',
         quantity: '',
-        age: '',
-        expectedProductionDate: '',
+        expected_production_date: '',
       });
     }
+    setError('');
   }, [batch]);
 
   const handleChange = (e) => {
@@ -42,9 +44,72 @@ const PoultryBatchModal = ({ isOpen, onClose, onSave, batch }) => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSave(formData);
+    setLoading(true);
+    setError('');
+
+    try {
+      const batchData = {
+        batch_name: formData.batch_name,
+        date_acquired: formData.date_acquired,
+        breed: formData.breed,
+        quantity: parseInt(formData.quantity),
+        expected_production_date: formData.expected_production_date || null,
+        status: 'active',
+        house: 'House A',
+        source: 'hatchery',
+        // Calculate daily eggs based on breed and quantity
+        daily_eggs: formData.breed === 'layer' || formData.breed === 'dual' 
+          ? Math.round(parseInt(formData.quantity) * 0.75) 
+          : 0,
+        // Calculate feed consumption
+        feed_consumption: Math.round(parseInt(formData.quantity) * 0.05),
+      };
+
+      let result;
+      
+      if (batch) {
+        // Update existing batch
+        result = await supabase
+          .from('poultry_batches')
+          .update(batchData)
+          .eq('id', batch.id)
+          .select();
+      } else {
+        // Create new batch
+        result = await supabase
+          .from('poultry_batches')
+          .insert([batchData])
+          .select();
+      }
+
+      if (result.error) throw result.error;
+
+      // Transform the saved data to match component structure
+      const savedBatch = result.data[0];
+      const transformedBatch = {
+        id: savedBatch.id,
+        batchName: savedBatch.batch_name,
+        dateAcquired: savedBatch.date_acquired,
+        breed: savedBatch.breed,
+        quantity: savedBatch.quantity,
+        expectedProductionDate: savedBatch.expected_production_date,
+        house: savedBatch.house || 'House A',
+        source: savedBatch.source || 'hatchery',
+        status: savedBatch.status || 'active',
+        dailyEggs: savedBatch.daily_eggs || 0,
+        feedConsumption: savedBatch.feed_consumption || 0,
+      };
+
+      onSave(transformedBatch);
+      onClose();
+    } catch (error) {
+      console.error('Error saving poultry batch:', error);
+      setError(error.message || 'Failed to save batch. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -53,7 +118,7 @@ const PoultryBatchModal = ({ isOpen, onClose, onSave, batch }) => {
     { value: 'layer', label: 'Layer (Egg Production)' },
     { value: 'broiler', label: 'Broiler (Meat Production)' },
     { value: 'dual', label: 'Dual Purpose' },
-    { value: 'local', label: 'Local Breed' },
+    { value: 'Maja', label: 'Maja (Noiler)' },
     { value: 'other', label: 'Other' }
   ];
 
@@ -62,36 +127,48 @@ const PoultryBatchModal = ({ isOpen, onClose, onSave, batch }) => {
       <div className="modal-content">
         <div className="modal-header">
           <h2>{batch ? 'Edit Batch' : 'Add New Batch'}</h2>
-          <button className="modal-close" onClick={onClose}>
+          <button 
+            className="modal-close" 
+            onClick={onClose}
+            disabled={loading}
+          >
             <FiX />
           </button>
         </div>
         
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
+            {error && (
+              <div className="alert alert-error">
+                <strong>Error:</strong> {error}
+              </div>
+            )}
+            
             <div className="form-grid">
               <div className="form-group">
-                <label htmlFor="batchName">Batch Name/ID *</label>
+                <label htmlFor="batch_name">Batch Name/ID *</label>
                 <input
                   type="text"
-                  id="batchName"
-                  name="batchName"
-                  value={formData.batchName}
+                  id="batch_name"
+                  name="batch_name"
+                  value={formData.batch_name}
                   onChange={handleChange}
                   placeholder="e.g., Layer Batch 1, Broiler Batch 2"
                   required
+                  disabled={loading}
                 />
               </div>
 
               <div className="form-group">
-                <label htmlFor="dateAcquired">Date Acquired *</label>
+                <label htmlFor="date_acquired">Date Acquired *</label>
                 <input
                   type="date"
-                  id="dateAcquired"
-                  name="dateAcquired"
-                  value={formData.dateAcquired}
+                  id="date_acquired"
+                  name="date_acquired"
+                  value={formData.date_acquired}
                   onChange={handleChange}
                   required
+                  disabled={loading}
                 />
               </div>
 
@@ -103,6 +180,7 @@ const PoultryBatchModal = ({ isOpen, onClose, onSave, batch }) => {
                   value={formData.breed}
                   onChange={handleChange}
                   required
+                  disabled={loading}
                 >
                   {breeds.map(breed => (
                     <option key={breed.value} value={breed.value}>
@@ -123,34 +201,20 @@ const PoultryBatchModal = ({ isOpen, onClose, onSave, batch }) => {
                   placeholder="e.g., 500"
                   min="1"
                   required
+                  disabled={loading}
                 />
               </div>
 
               <div className="form-group">
-                <label htmlFor="age">Age (weeks)</label>
-                <input
-                  type="number"
-                  id="age"
-                  name="age"
-                  value={formData.age}
-                  onChange={handleChange}
-                  placeholder="e.g., 20"
-                  min="0"
-                />
-                <small className="form-help">
-                  Age of birds at time of acquisition
-                </small>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="expectedProductionDate">Expected Production Date</label>
+                <label htmlFor="expected_production_date">Expected Production Date</label>
                 <input
                   type="date"
-                  id="expectedProductionDate"
-                  name="expectedProductionDate"
-                  value={formData.expectedProductionDate}
+                  id="expected_production_date"
+                  name="expected_production_date"
+                  value={formData.expected_production_date}
                   onChange={handleChange}
-                  min={formData.dateAcquired}
+                  min={formData.date_acquired}
+                  disabled={loading}
                 />
                 <small className="form-help">
                   For layers: Expected start of egg laying
@@ -162,11 +226,20 @@ const PoultryBatchModal = ({ isOpen, onClose, onSave, batch }) => {
           </div>
 
           <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>
+            <button 
+              type="button" 
+              className="btn btn-secondary" 
+              onClick={onClose}
+              disabled={loading}
+            >
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary">
-              {batch ? 'Update Batch' : 'Create Batch'}
+            <button 
+              type="submit" 
+              className="btn btn-primary"
+              disabled={loading}
+            >
+              {loading ? 'Saving...' : batch ? 'Update Batch' : 'Create Batch'}
             </button>
           </div>
         </form>
