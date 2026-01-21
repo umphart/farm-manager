@@ -1,63 +1,15 @@
-import React, { useState } from 'react';
-import { FiPlus, FiTrendingUp, FiDollarSign, FiCalendar, FiEdit, FiTrash2 } from 'react-icons/fi';
+import React, { useState, useEffect } from 'react';
+import { FiPlus, FiTrendingUp, FiDollarSign, FiCalendar, FiEdit, FiTrash2, FiRefreshCw } from 'react-icons/fi';
 import { useToast } from '../contexts/ToastContext';
+import { supabase } from '../lib/supabase';
 import InvestmentModal from '../components/InvestmentModal';
 import './Investments.css';
 
 const Investments = () => {
-  const { showSuccess, showError } = useToast();
+  const { showSuccess, showError, showLoading, dismiss } = useToast();
   
-  const [investments, setInvestments] = useState([
-    { 
-      id: 1, 
-      name: 'New Fish Ponds', 
-      amount: 1200000, 
-      date: '2024-01-10', 
-      type: 'Infrastructure', 
-      description: 'Construction of 3 new fish ponds',
-      expectedROI: '15',
-      duration: '12',
-      status: 'in-progress',
-      notes: 'Includes excavation and water system installation'
-    },
-    { 
-      id: 2, 
-      name: 'Poultry Expansion', 
-      amount: 850000, 
-      date: '2024-01-05', 
-      type: 'Equipment', 
-      description: 'Purchase of automated feeding systems',
-      expectedROI: '18',
-      duration: '6',
-      status: 'completed',
-      notes: 'Installed in House A and B'
-    },
-    { 
-      id: 3, 
-      name: 'Feed Storage', 
-      amount: 350000, 
-      date: '2023-12-20', 
-      type: 'Facility', 
-      description: 'Construction of feed storage facility',
-      expectedROI: '12',
-      duration: '24',
-      status: 'completed',
-      notes: 'Capacity: 10 tons'
-    },
-    { 
-      id: 4, 
-      name: 'Water System', 
-      amount: 280000, 
-      date: '2023-12-15', 
-      type: 'Infrastructure', 
-      description: 'Borehole and irrigation system',
-      expectedROI: '10',
-      duration: '18',
-      status: 'in-progress',
-      notes: 'Includes water treatment system'
-    },
-  ]);
-
+  const [investments, setInvestments] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedInvestment, setSelectedInvestment] = useState(null);
   const [roiData, setRoiData] = useState({
@@ -68,28 +20,71 @@ const Investments = () => {
     roiPercentage: 0,
   });
 
+  useEffect(() => {
+    fetchInvestments();
+  }, []);
+
+  const fetchInvestments = async () => {
+    setLoading(true);
+    try {
+     
+      
+      const { data, error } = await supabase
+        .from('investments')
+        .select('*')
+        .order('date', { ascending: false });
+
+      if (error) {
+        // Check if table doesn't exist
+        if (error.code === 'PGRST116' || error.code === '42P01') {
+          const errorMsg = 'Investments table not found. Please create it in Supabase first.';
+          showError(errorMsg);
+          return;
+        }
+        throw error;
+      }
+
+      setInvestments(data || []);
+      
+   
+     
+    } catch (error) {
+      console.error('Error fetching investments:', error);
+      showError('Failed to load investments. Please check your connection and try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-NG', {
       style: 'currency',
       currency: 'NGN',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(amount);
+    }).format(amount || 0);
   };
 
-  const totalInvestment = investments.reduce((sum, inv) => sum + inv.amount, 0);
-  const activeProjects = investments.filter(inv => inv.status === 'in-progress').length;
-  const completedProjects = investments.filter(inv => inv.status === 'completed').length;
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-NG', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
+  };
+
+  const totalInvestment = investments.reduce((sum, inv) => sum + (inv.amount || 0), 0);
   
-  const calculateAverageROI = () => {
-    const rois = investments
-      .filter(inv => inv.expectedROI)
-      .map(inv => parseFloat(inv.expectedROI));
-    
-    if (rois.length === 0) return '0%';
-    
-    const average = rois.reduce((sum, roi) => sum + roi, 0) / rois.length;
-    return `${average.toFixed(1)}%`;
+  // Calculate average investment amount
+  const calculateAverageInvestment = () => {
+    if (investments.length === 0) return 0;
+    return totalInvestment / investments.length;
+  };
+
+  // Get latest investment date
+  const getLatestInvestmentDate = () => {
+    if (investments.length === 0) return 'N/A';
+    return formatDate(investments[0].date); // Already sorted by date descending
   };
 
   const handleAddInvestment = () => {
@@ -102,33 +97,43 @@ const Investments = () => {
     setIsModalOpen(true);
   };
 
-  const handleDeleteInvestment = (investmentId) => {
-    if (window.confirm('Are you sure you want to delete this investment? This action cannot be undone.')) {
-      setInvestments(investments.filter(inv => inv.id !== investmentId));
-      showSuccess('Investment deleted successfully!');
+  const handleDeleteInvestment = async (investmentId) => {
+    const investmentToDelete = investments.find(inv => inv.id === investmentId);
+    
+    if (window.confirm(`Are you sure you want to delete this investment: "${investmentToDelete?.name}"? This action cannot be undone.`)) {
+      const loadingToast = showLoading('Deleting investment...');
+      
+      try {
+        const { error } = await supabase
+          .from('investments')
+          .delete()
+          .eq('id', investmentId);
+
+        if (error) throw error;
+        
+        // Update local state
+        setInvestments(investments.filter(inv => inv.id !== investmentId));
+        
+        dismiss(loadingToast);
+        showSuccess('Investment deleted successfully!');
+      } catch (error) {
+        console.error('Error deleting investment:', error);
+        dismiss(loadingToast);
+        showError('Failed to delete investment. Please try again.');
+      }
     }
   };
 
-  const handleSaveInvestment = (investmentData) => {
-    if (selectedInvestment) {
-      // Update existing investment
-      setInvestments(investments.map(inv => 
-        inv.id === selectedInvestment.id 
-          ? { ...selectedInvestment, ...investmentData, type: investmentData.type.charAt(0).toUpperCase() + investmentData.type.slice(1) }
-          : inv
-      ));
-      showSuccess('Investment updated successfully!');
-    } else {
-      // Add new investment
-      const newInvestment = {
-        id: Date.now(),
-        ...investmentData,
-        type: investmentData.type.charAt(0).toUpperCase() + investmentData.type.slice(1),
-      };
-      setInvestments([...investments, newInvestment]);
-      showSuccess('New investment created successfully!');
+  const handleSaveInvestment = async (investmentData) => {
+    try {
+      // Refresh the investments list
+      await fetchInvestments();
+      setIsModalOpen(false);
+      setSelectedInvestment(null);
+    } catch (error) {
+      console.error('Error handling save:', error);
+      showError('Failed to save investment. Please try again.');
     }
-    setIsModalOpen(false);
   };
 
   const handleRoiInputChange = (field, value) => {
@@ -159,222 +164,290 @@ const Investments = () => {
     }
   };
 
-  const getStatusBadgeClass = (status) => {
-    switch(status) {
-      case 'planned': return 'status-planned';
-      case 'in-progress': return 'status-in-progress';
-      case 'completed': return 'status-completed';
-      case 'delayed': return 'status-delayed';
-      case 'cancelled': return 'status-cancelled';
-      default: return 'status-planned';
-    }
+  const getTypeDisplay = (type) => {
+    const typeMap = {
+      'infrastructure': 'Infrastructure',
+      'equipment': 'Equipment',
+      'facility': 'Facility',
+      'stock': 'Stock Purchase',
+      'technology': 'Technology',
+      'land': 'Land Acquisition',
+      'other': 'Other'
+    };
+    return typeMap[type] || type;
   };
 
-  const getStatusDisplay = (status) => {
-    switch(status) {
-      case 'planned': return 'Planned';
-      case 'in-progress': return 'In Progress';
-      case 'completed': return 'Completed';
-      case 'delayed': return 'Delayed';
-      case 'cancelled': return 'Cancelled';
-      default: return status;
-    }
+  const handleRefresh = () => {
+    fetchInvestments();
   };
 
   return (
     <div className="investments-page">
       <div className="page-header">
         <h1>Investment Tracking</h1>
-        <button className="btn btn-primary" onClick={handleAddInvestment}>
-          <FiPlus /> New Investment
-        </button>
-      </div>
-
-      <div className="investments-summary">
-        <div className="summary-card">
-          <div className="summary-icon">
-            <FiDollarSign />
-          </div>
-          <div className="summary-content">
-            <h3>Total Investment</h3>
-            <div className="summary-value">{formatCurrency(totalInvestment)}</div>
-            <div className="summary-label">All Investments</div>
-          </div>
-        </div>
-        
-        <div className="summary-card">
-          <div className="summary-icon">
-            <FiTrendingUp />
-          </div>
-          <div className="summary-content">
-            <h3>Average ROI</h3>
-            <div className="summary-value">{calculateAverageROI()}</div>
-            <div className="summary-label">Expected Return</div>
-          </div>
-        </div>
-        
-        <div className="summary-card">
-          <div className="summary-icon">
-            <FiCalendar />
-          </div>
-          <div className="summary-content">
-            <h3>Active Projects</h3>
-            <div className="summary-value">{activeProjects}</div>
-            <div className="summary-label">of {investments.length} total</div>
-          </div>
-        </div>
-
-        <div className="summary-card">
-          <div className="summary-icon">
-            <FiTrendingUp />
-          </div>
-          <div className="summary-content">
-            <h3>Completed</h3>
-            <div className="summary-value">{completedProjects}</div>
-            <div className="summary-label">Projects</div>
-          </div>
-        </div>
-      </div>
-
-// Update your Investments component table section:
-<div className="investments-table desktop-view">
-  <div className="section-header">
-    <h2>Recent Investments</h2>
-    <div className="table-summary">
-      <span>Showing {investments.length} investments</span>
-    </div>
-  </div>
-  <div className="table-container">
-    <table className="desktop-table">
-      {/* Your existing desktop table structure */}
-    </table>
-  </div>
-</div>
-
-<div className="investments-table mobile-view">
-  <div className="section-header">
-    <h2>Recent Investments</h2>
-    <div className="table-summary">
-      <span>Showing {investments.length} investments</span>
-    </div>
-  </div>
-  <div className="mobile-cards">
-    {investments.map(inv => (
-      <div key={inv.id} className="mobile-card">
-        <div className="mobile-card-header">
-          <div className="mobile-card-title">
-            <strong>{inv.name}</strong>
-            <div className="mobile-card-description">{inv.description}</div>
-          </div>
-          <div className="mobile-card-status">
-            <span className={`status-badge ${getStatusBadgeClass(inv.status)}`}>
-              {getStatusDisplay(inv.status)}
-            </span>
-          </div>
-        </div>
-        <div className="mobile-card-details">
-          <div className="mobile-detail-item">
-            <span className="mobile-detail-label">Type</span>
-            <span className={`type-badge type-${inv.type.toLowerCase()}`}>
-              {inv.type}
-            </span>
-          </div>
-          <div className="mobile-detail-item">
-            <span className="mobile-detail-label">Date</span>
-            <span className="mobile-detail-value">{inv.date}</span>
-          </div>
-          <div className="mobile-detail-item">
-            <span className="mobile-detail-label">Amount</span>
-            <span className="mobile-detail-value amount">{formatCurrency(inv.amount)}</span>
-          </div>
-          <div className="mobile-detail-item">
-            <span className="mobile-detail-label">ROI</span>
-            <span className="mobile-detail-value roi">{inv.expectedROI}%</span>
-          </div>
-        </div>
-        <div className="mobile-card-actions">
-          <button 
-            className="btn btn-secondary" 
-            onClick={() => handleEditInvestment(inv)}
-          >
-            <FiEdit /> Edit
+        <div className="header-actions">
+          <button onClick={handleRefresh} className="btn btn-secondary" disabled={loading}>
+            <FiRefreshCw /> {loading ? 'Loading...' : 'Refresh'}
           </button>
-          <button 
-            className="btn btn-secondary delete" 
-            onClick={() => handleDeleteInvestment(inv.id)}
-          >
-            <FiTrash2 /> Delete
+          <button className="btn btn-primary" onClick={handleAddInvestment} disabled={loading}>
+            <FiPlus /> New Investment
           </button>
         </div>
       </div>
-    ))}
-  </div>
-</div>
 
-      <div className="roi-calculator">
-        <h2>ROI Calculator</h2>
-        <div className="calculator-container">
-          <div className="calculator-form">
-            <div className="form-group">
-              <label>Initial Investment (₦)</label>
-              <input 
-                type="number" 
-                className="form-control" 
-                placeholder="Enter amount"
-                value={roiData.initialInvestment}
-                onChange={(e) => handleRoiInputChange('initialInvestment', e.target.value)}
-              />
-            </div>
-            <div className="form-group">
-              <label>Monthly Return (₦)</label>
-              <input 
-                type="number" 
-                className="form-control" 
-                placeholder="Expected monthly return"
-                value={roiData.monthlyReturn}
-                onChange={(e) => handleRoiInputChange('monthlyReturn', e.target.value)}
-              />
-            </div>
-            <div className="form-group">
-              <label>Time Period (months)</label>
-              <input 
-                type="number" 
-                className="form-control" 
-                placeholder="Number of months"
-                value={roiData.timePeriod}
-                onChange={(e) => handleRoiInputChange('timePeriod', e.target.value)}
-              />
-            </div>
-            <button className="btn btn-primary" onClick={calculateROI}>
-              Calculate ROI
-            </button>
-          </div>
-          
-          <div className="calculation-result">
-            <h4>Projected Results</h4>
-            <div className="result-grid">
-              <div className="result-item">
-                <span>Total Return:</span>
-                <strong>{formatCurrency(roiData.totalReturn)}</strong>
-              </div>
-              <div className="result-item">
-                <span>Net Profit:</span>
-                <strong>{formatCurrency(roiData.totalReturn - (parseFloat(roiData.initialInvestment) || 0))}</strong>
-              </div>
-              <div className="result-item">
-                <span>ROI Percentage:</span>
-                <strong className={roiData.roiPercentage >= 0 ? 'positive' : 'negative'}>
-                  {roiData.roiPercentage}%
-                </strong>
-              </div>
-              <div className="result-item">
-                <span>Monthly ROI:</span>
-                <strong>{roiData.timePeriod ? (parseFloat(roiData.roiPercentage) / parseFloat(roiData.timePeriod)).toFixed(2) + '%' : '0%'}</strong>
-              </div>
-            </div>
-          </div>
+      {loading ? (
+        <div className="loading-overlay">
+         
         </div>
-      </div>
+      ) : (
+        <>
+          <div className="investments-summary">
+            <div className="summary-card">
+              <div className="summary-icon">
+                <FiDollarSign />
+              </div>
+              <div className="summary-content">
+                <h3>Total Investment</h3>
+                <div className="summary-value">{formatCurrency(totalInvestment)}</div>
+                <div className="summary-label">All Investments</div>
+              </div>
+            </div>
+            
+            <div className="summary-card">
+              <div className="summary-icon">
+                <FiTrendingUp />
+              </div>
+              <div className="summary-content">
+                <h3>Total Investments</h3>
+                <div className="summary-value">{investments.length}</div>
+                <div className="summary-label">Investment Records</div>
+              </div>
+            </div>
+            
+            <div className="summary-card">
+              <div className="summary-icon">
+                <FiCalendar />
+              </div>
+              <div className="summary-content">
+                <h3>Latest Investment</h3>
+                <div className="summary-value">
+                  {getLatestInvestmentDate()}
+                </div>
+                <div className="summary-label">Most Recent</div>
+              </div>
+            </div>
+
+            <div className="summary-card">
+              <div className="summary-icon">
+                <FiTrendingUp />
+              </div>
+              <div className="summary-content">
+                <h3>Average Investment</h3>
+                <div className="summary-value">
+                  {formatCurrency(calculateAverageInvestment())}
+                </div>
+                <div className="summary-label">Per Investment</div>
+              </div>
+            </div>
+          </div>
+
+          {investments.length === 0 ? (
+            <div className="empty-state">
+              <FiDollarSign size={48} />
+              <h3>No Investments Found</h3>
+              <p>Get started by adding your first investment.</p>
+              <button className="btn btn-primary" onClick={handleAddInvestment}>
+                <FiPlus /> Add First Investment
+              </button>
+            </div>
+          ) : (
+            <>
+              {/* Desktop Table View */}
+              <div className="desktop-table">
+                <div className="section-header">
+                  <h2>Recent Investments</h2>
+                  <div className="table-summary">
+                    <span>Showing {investments.length} investments</span>
+                    <span>Total Value: {formatCurrency(totalInvestment)}</span>
+                  </div>
+                </div>
+                <div className="table-wrapper">
+                  <table className="investments-table">
+                    <thead>
+                      <tr>
+                        <th>Investment Name</th>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {investments.map(inv => (
+                        <tr key={inv.id}>
+                          <td>
+                            <div className="investment-name">
+                              <strong>{inv.name}</strong>
+                            </div>
+                          </td>
+                          <td>
+                            <div className="date-cell">
+                              <div className="date-day">{formatDate(inv.date)}</div>
+                            </div>
+                          </td>
+                          <td>
+                            <span className={`type-badge type-${inv.type}`}>
+                              {getTypeDisplay(inv.type)}
+                            </span>
+                          </td>
+                          <td className="amount-cell">{formatCurrency(inv.amount)}</td>
+                          <td>
+                            <div className="table-actions">
+                              <button 
+                                className="icon-btn" 
+                                onClick={() => handleEditInvestment(inv)}
+                                title="Edit Investment"
+                              >
+                                <FiEdit />
+                              </button>
+                              <button 
+                                className="icon-btn delete" 
+                                onClick={() => handleDeleteInvestment(inv.id)}
+                                title="Delete Investment"
+                              >
+                                <FiTrash2 />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="mobile-card-view">
+                <div className="section-header">
+                  <h2>Recent Investments</h2>
+                  <div className="table-summary">
+                    <span>Showing {investments.length} investments</span>
+                  </div>
+                </div>
+                <div className="mobile-cards">
+                  {investments.map(inv => (
+                    <div key={inv.id} className="mobile-card">
+                      <div className="mobile-card-header">
+                        <div className="mobile-card-title">
+                          <strong>{inv.name}</strong>
+                        </div>
+                      </div>
+                      <div className="mobile-card-details">
+                        <div className="mobile-detail-item">
+                          <span className="mobile-detail-label">Type</span>
+                          <span className={`type-badge type-${inv.type}`}>
+                            {getTypeDisplay(inv.type)}
+                          </span>
+                        </div>
+                        <div className="mobile-detail-item">
+                          <span className="mobile-detail-label">Date</span>
+                          <span className="mobile-detail-value">{formatDate(inv.date)}</span>
+                        </div>
+                        <div className="mobile-detail-item">
+                          <span className="mobile-detail-label">Amount</span>
+                          <span className="mobile-detail-value amount">{formatCurrency(inv.amount)}</span>
+                        </div>
+                      </div>
+                      <div className="mobile-card-actions">
+                        <button 
+                          className="btn btn-sm btn-secondary" 
+                          onClick={() => handleEditInvestment(inv)}
+                        >
+                          <FiEdit /> Edit
+                        </button>
+                        <button 
+                          className="btn btn-sm btn-secondary delete" 
+                          onClick={() => handleDeleteInvestment(inv.id)}
+                        >
+                          <FiTrash2 /> Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
+          <div className="roi-calculator">
+            <h2>ROI Calculator</h2>
+            <div className="calculator-container">
+              <div className="calculator-form">
+                <div className="form-group">
+                  <label>Initial Investment (₦)</label>
+                  <input 
+                    type="number" 
+                    className="form-control" 
+                    placeholder="Enter amount"
+                    value={roiData.initialInvestment}
+                    onChange={(e) => handleRoiInputChange('initialInvestment', e.target.value)}
+                    disabled={loading}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Monthly Return (₦)</label>
+                  <input 
+                    type="number" 
+                    className="form-control" 
+                    placeholder="Expected monthly return"
+                    value={roiData.monthlyReturn}
+                    onChange={(e) => handleRoiInputChange('monthlyReturn', e.target.value)}
+                    disabled={loading}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Time Period (months)</label>
+                  <input 
+                    type="number" 
+                    className="form-control" 
+                    placeholder="Number of months"
+                    value={roiData.timePeriod}
+                    onChange={(e) => handleRoiInputChange('timePeriod', e.target.value)}
+                    disabled={loading}
+                  />
+                </div>
+                <button className="btn btn-primary" onClick={calculateROI} disabled={loading}>
+                  Calculate ROI
+                </button>
+              </div>
+              
+              <div className="calculation-result">
+                <h4>Projected Results</h4>
+                <div className="result-grid">
+                  <div className="result-item">
+                    <span>Total Return:</span>
+                    <strong>{formatCurrency(roiData.totalReturn)}</strong>
+                  </div>
+                  <div className="result-item">
+                    <span>Net Profit:</span>
+                    <strong>{formatCurrency(roiData.totalReturn - (parseFloat(roiData.initialInvestment) || 0))}</strong>
+                  </div>
+                  <div className="result-item">
+                    <span>ROI Percentage:</span>
+                    <strong className={roiData.roiPercentage >= 0 ? 'positive' : 'negative'}>
+                      {roiData.roiPercentage}%
+                    </strong>
+                  </div>
+                  <div className="result-item">
+                    <span>Monthly ROI:</span>
+                    <strong>{roiData.timePeriod ? (parseFloat(roiData.roiPercentage) / parseFloat(roiData.timePeriod)).toFixed(2) + '%' : '0%'}</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       <InvestmentModal 
         isOpen={isModalOpen}

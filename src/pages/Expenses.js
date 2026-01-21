@@ -1,70 +1,16 @@
-import React, { useState } from 'react';
+// src/pages/Expenses.js
+import React, { useState, useEffect } from 'react';
 import { FiPlus, FiFilter, FiDownload, FiEdit, FiTrash2, FiCalendar, FiDollarSign, FiRefreshCw } from 'react-icons/fi';
 import { useToast } from '../contexts/ToastContext';
+import { supabase } from '../lib/supabase';
 import ExpenseModal from '../components/ExpenseModal';
 import './Expenses.css';
 
 const Expenses = () => {
-  const { showSuccess } = useToast();
+  const { showSuccess, showError, showLoading, dismiss } = useToast();
   
-  const [expenses, setExpenses] = useState([
-    { 
-      id: 1, 
-      category: 'feed', 
-      description: 'Fish feed purchase - 50 bags', 
-      amount: 450000, 
-      date: '2024-01-15', 
-      farmSection: 'fish',
-      paymentMethod: 'bank-transfer',
-      receiptNo: 'INV-2024-001',
-      notes: 'Purchased from AgroMart Ltd'
-    },
-    { 
-      id: 2, 
-      category: 'medication', 
-      description: 'Vaccines for poultry - 1000 doses', 
-      amount: 125000, 
-      date: '2024-01-14', 
-      farmSection: 'poultry',
-      paymentMethod: 'cash',
-      receiptNo: 'RX-2024-001',
-      notes: 'Veterinary supplies'
-    },
-    { 
-      id: 3, 
-      category: 'labor', 
-      description: 'Monthly staff salary - 5 workers', 
-      amount: 300000, 
-      date: '2024-01-10', 
-      farmSection: 'general',
-      paymentMethod: 'bank-transfer',
-      receiptNo: 'SAL-2024-001',
-      notes: 'January salary payment'
-    },
-    { 
-      id: 4, 
-      category: 'equipment', 
-      description: 'Water pumps - 2 units', 
-      amount: 180000, 
-      date: '2024-01-05', 
-      farmSection: 'fish',
-      paymentMethod: 'bank-transfer',
-      receiptNo: 'EQP-2024-001',
-      notes: 'For pond circulation'
-    },
-    { 
-      id: 5, 
-      category: 'utilities', 
-      description: 'Electricity bill - January', 
-      amount: 75000, 
-      date: '2024-01-03', 
-      farmSection: 'general',
-      paymentMethod: 'mobile-money',
-      receiptNo: 'EB-2024-001',
-      notes: 'Main farm building'
-    },
-  ]);
-
+  const [expenses, setExpenses] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState(null);
   const [filters, setFilters] = useState({
@@ -73,6 +19,63 @@ const Expenses = () => {
     dateFrom: '',
     dateTo: '',
   });
+  const [ponds, setPonds] = useState({}); // Store pond names for display
+
+  useEffect(() => {
+    fetchExpenses();
+  }, []);
+
+  const fetchExpenses = async () => {
+    setLoading(true);
+    try {
+      setLoading(true);
+      
+      
+      // Fetch expenses from Supabase
+      const { data: expensesData, error: expensesError } = await supabase
+        .from('expenses')
+        .select('*')
+        .order('date', { ascending: false });
+
+      if (expensesError) {
+        // Check if table doesn't exist
+        if (expensesError.code === 'PGRST116' || expensesError.code === '42P01') {
+          const errorMsg = 'Expenses table not found. Please create it in Supabase first.';
+          showError(errorMsg);
+          return;
+        }
+        throw expensesError;
+      }
+
+      // Fetch ponds data for linked expenses
+      const { data: pondsData, error: pondsError } = await supabase
+        .from('ponds')
+        .select('id, name');
+
+      if (pondsError && pondsError.code !== 'PGRST116' && pondsError.code !== '42P01') {
+        console.warn('Error fetching ponds for expense display:', pondsError);
+      }
+
+      // Create a map of pond IDs to names
+      const pondsMap = {};
+      if (pondsData) {
+        pondsData.forEach(pond => {
+          pondsMap[pond.id] = pond.name;
+        });
+      }
+
+      setPonds(pondsMap);
+      setExpenses(expensesData || []);
+      
+      dismiss();
+     
+    } catch (error) {
+      console.error('Error fetching expenses:', error);
+      showError('Failed to load expenses. Please check your connection and try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-NG', {
@@ -80,7 +83,7 @@ const Expenses = () => {
       currency: 'NGN',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(amount);
+    }).format(amount || 0);
   };
 
   const formatDate = (dateString) => {
@@ -92,7 +95,7 @@ const Expenses = () => {
   };
 
   const calculateTotalExpenses = () => {
-    return expenses.reduce((sum, exp) => sum + exp.amount, 0);
+    return filteredExpenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
   };
 
   const calculateMonthlyExpenses = () => {
@@ -104,7 +107,7 @@ const Expenses = () => {
         const expDate = new Date(exp.date);
         return expDate.getMonth() === currentMonth && expDate.getFullYear() === currentYear;
       })
-      .reduce((sum, exp) => sum + exp.amount, 0);
+      .reduce((sum, exp) => sum + (exp.amount || 0), 0);
   };
 
   const calculateAverageDaily = () => {
@@ -122,6 +125,7 @@ const Expenses = () => {
       'transport': 'Transport',
       'maintenance': 'Maintenance',
       'veterinary': 'Veterinary',
+      'pond_setup': 'Pond Setup',
       'other': 'Other'
     };
     return categoryMap[category] || category;
@@ -140,7 +144,7 @@ const Expenses = () => {
 
   const filteredExpenses = expenses.filter(expense => {
     if (filters.category !== 'all' && expense.category !== filters.category) return false;
-    if (filters.farmSection !== 'all' && expense.farmSection !== filters.farmSection) return false;
+    if (filters.farmSection !== 'all' && expense.farm_section !== filters.farmSection) return false;
     if (filters.dateFrom && new Date(expense.date) < new Date(filters.dateFrom)) return false;
     if (filters.dateTo && new Date(expense.date) > new Date(filters.dateTo)) return false;
     return true;
@@ -156,33 +160,43 @@ const Expenses = () => {
     setIsModalOpen(true);
   };
 
-  const handleDeleteExpense = (expenseId) => {
-    if (window.confirm('Are you sure you want to delete this expense? This action cannot be undone.')) {
-      setExpenses(expenses.filter(exp => exp.id !== expenseId));
-      showSuccess('Expense deleted successfully!');
+  const handleDeleteExpense = async (expenseId) => {
+    const expenseToDelete = expenses.find(exp => exp.id === expenseId);
+    
+    if (window.confirm(`Are you sure you want to delete this expense: "${expenseToDelete?.description}"? This action cannot be undone.`)) {
+      const loadingToast = showLoading('Deleting expense...');
+      
+      try {
+        const { error } = await supabase
+          .from('expenses')
+          .delete()
+          .eq('id', expenseId);
+
+        if (error) throw error;
+        
+        // Update local state
+        setExpenses(expenses.filter(exp => exp.id !== expenseId));
+        
+        dismiss(loadingToast);
+        showSuccess('Expense deleted successfully!');
+      } catch (error) {
+        console.error('Error deleting expense:', error);
+        dismiss(loadingToast);
+        showError('Failed to delete expense. Please try again.');
+      }
     }
   };
 
-  const handleSaveExpense = (expenseData) => {
-    if (selectedExpense) {
-      // Update existing expense
-      setExpenses(expenses.map(exp => 
-        exp.id === selectedExpense.id 
-          ? { ...selectedExpense, ...expenseData }
-          : exp
-      ));
-      showSuccess('Expense updated successfully!');
-    } else {
-      // Add new expense
-      const newExpense = {
-        id: Date.now(),
-        ...expenseData,
-        amount: parseInt(expenseData.amount),
-      };
-      setExpenses([...expenses, newExpense]);
-      showSuccess('New expense added successfully!');
+  const handleSaveExpense = async (expenseData) => {
+    try {
+      // Refresh the expenses list
+      await fetchExpenses();
+      setIsModalOpen(false);
+      setSelectedExpense(null);
+    } catch (error) {
+      console.error('Error handling save:', error);
+      showError('Failed to save expense. Please try again.');
     }
-    setIsModalOpen(false);
   };
 
   const handleFilterChange = (field, value) => {
@@ -202,9 +216,46 @@ const Expenses = () => {
     showSuccess('Filters reset successfully!');
   };
 
-  const handleExportData = () => {
-    // In a real app, this would generate and download a CSV/Excel file
-    showSuccess('Export started. You will receive the file shortly.');
+  const handleExportData = async () => {
+    try {
+      // Create CSV content
+      const headers = ['Date', 'Category', 'Description', 'Farm Section', 'Amount (₦)', 'Payment Method', 'Receipt No', 'Notes', 'Linked Pond'];
+      const csvRows = [
+        headers.join(','),
+        ...filteredExpenses.map(exp => [
+          exp.date,
+          getCategoryDisplay(exp.category),
+          `"${exp.description.replace(/"/g, '""')}"`,
+          getFarmSectionDisplay(exp.farm_section),
+          exp.amount,
+          exp.payment_method || '',
+          exp.receipt_no || '',
+          `"${(exp.notes || '').replace(/"/g, '""')}"`,
+          exp.pond_id ? ponds[exp.pond_id] || '' : ''
+        ].join(','))
+      ].join('\n');
+
+      // Create and download CSV file
+      const blob = new Blob([csvRows], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      
+      link.setAttribute('href', url);
+      link.setAttribute('download', `expenses_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      showSuccess('Expenses exported successfully!');
+    } catch (error) {
+      console.error('Error exporting data:', error);
+      showError('Failed to export expenses. Please try again.');
+    }
+  };
+
+  const handleRefresh = () => {
+    fetchExpenses();
   };
 
   const categories = [
@@ -217,6 +268,7 @@ const Expenses = () => {
     { value: 'transport', label: 'Transport' },
     { value: 'maintenance', label: 'Maintenance' },
     { value: 'veterinary', label: 'Veterinary' },
+    { value: 'pond_setup', label: 'Pond Setup' },
     { value: 'other', label: 'Other' }
   ];
 
@@ -235,7 +287,7 @@ const Expenses = () => {
     .map(category => {
       const categoryTotal = filteredExpenses
         .filter(exp => exp.category === category.value)
-        .reduce((sum, exp) => sum + exp.amount, 0);
+        .reduce((sum, exp) => sum + (exp.amount || 0), 0);
       
       return {
         ...category,
@@ -253,8 +305,8 @@ const Expenses = () => {
     .filter(section => section.value !== 'all')
     .map(section => {
       const sectionTotal = filteredExpenses
-        .filter(exp => exp.farmSection === section.value)
-        .reduce((sum, exp) => sum + exp.amount, 0);
+        .filter(exp => exp.farm_section === section.value)
+        .reduce((sum, exp) => sum + (exp.amount || 0), 0);
       
       return {
         ...section,
@@ -272,11 +324,11 @@ const Expenses = () => {
       <div className="page-header">
         <h1>Expense Management</h1>
         <div className="header-actions">
-          <button className="btn btn-primary" onClick={handleAddExpense}>
-            <FiPlus /> Add New Expense
+          <button onClick={handleRefresh} className="btn btn-secondary" disabled={loading}>
+            <FiRefreshCw /> {loading ? 'Loading...' : 'Refresh'}
           </button>
-          <button className="btn btn-secondary" onClick={handleExportData}>
-            <FiDownload /> Export Data
+          <button className="btn btn-primary" onClick={handleAddExpense} disabled={loading}>
+            <FiPlus /> Add New Expense
           </button>
         </div>
       </div>
@@ -338,6 +390,7 @@ const Expenses = () => {
               className="filter-select"
               value={filters.category}
               onChange={(e) => handleFilterChange('category', e.target.value)}
+              disabled={loading}
             >
               {categories.map(cat => (
                 <option key={cat.value} value={cat.value}>{cat.label}</option>
@@ -352,6 +405,7 @@ const Expenses = () => {
               className="filter-select"
               value={filters.farmSection}
               onChange={(e) => handleFilterChange('farmSection', e.target.value)}
+              disabled={loading}
             >
               {farmSections.map(section => (
                 <option key={section.value} value={section.value}>{section.label}</option>
@@ -367,6 +421,7 @@ const Expenses = () => {
               className="filter-select"
               value={filters.dateFrom}
               onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
+              disabled={loading}
             />
           </div>
           
@@ -378,196 +433,217 @@ const Expenses = () => {
               className="filter-select"
               value={filters.dateTo}
               onChange={(e) => handleFilterChange('dateTo', e.target.value)}
+              disabled={loading}
             />
           </div>
         </div>
         
-        <div className="filter-actions">
-          <div className="filter-info">
-            Showing {filteredExpenses.length} of {expenses.length} expense records
-          </div>
-          <button className="btn btn-secondary" onClick={handleResetFilters}>
-            <FiRefreshCw /> Reset Filters
+    
+      </div>
+
+      {loading ? (
+        <div className="loading-overlay">
+         
+        </div>
+      ) : filteredExpenses.length === 0 ? (
+        <div className="empty-state">
+          <FiDollarSign size={48} />
+          <h3>No Expenses Found</h3>
+          <p>{expenses.length === 0 ? "Get started by adding your first expense." : "No expenses match your filters."}</p>
+          <button className="btn btn-primary" onClick={handleAddExpense}>
+            <FiPlus /> Add First Expense
           </button>
         </div>
-      </div>
+      ) : (
+        <>
+          {/* Desktop Table View */}
+          <div className="desktop-table">
+            <table className="expenses-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Category</th>
+                  <th>Description</th>
+                  <th>Farm Section</th>
+                  <th>Amount</th>
+                  
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredExpenses.map(expense => (
+                  <tr key={expense.id}>
+                    <td>
+                      <div className="date-cell">
+                        <div className="date-day">{formatDate(expense.date)}</div>
+                        <div className="date-weekday">
+                          {new Date(expense.date).toLocaleDateString('en-NG', { weekday: 'short' })}
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span className={`category-badge category-${expense.category}`}>
+                        {getCategoryDisplay(expense.category)}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="description-cell">
+                        <div className="description-main">{expense.description}</div>
+                        {expense.notes && (
+                          <div className="description-notes">{expense.notes}</div>
+                        )}
+                        {expense.receipt_no && (
+                          <div className="description-receipt">Receipt: {expense.receipt_no}</div>
+                        )}
+                      </div>
+                    </td>
+                    <td>
+                      <span className="farm-section">
+                        {getFarmSectionDisplay(expense.farm_section)}
+                      </span>
+                    </td>
+                    <td className="amount-cell">{formatCurrency(expense.amount)}</td>
+                    
+                    <td>
+                      <div className="table-actions">
+                        <button 
+                          className="icon-btn" 
+                          onClick={() => handleEditExpense(expense)}
+                          title="Edit Expense"
+                        >
+                          <FiEdit />
+                        </button>
+                        <button 
+                          className="icon-btn delete" 
+                          onClick={() => handleDeleteExpense(expense.id)}
+                          title="Delete Expense"
+                        >
+                          <FiTrash2 />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-      {/* Desktop Table View */}
-      <div className="desktop-table">
-        <table className="expenses-table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Category</th>
-              <th>Description</th>
-              <th>Farm Section</th>
-              <th>Amount</th>
-              <th>Receipt No.</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+          {/* Mobile Card View */}
+          <div className="mobile-card-view">
             {filteredExpenses.map(expense => (
-              <tr key={expense.id}>
-                <td>
-                  <div className="date-cell">
+              <div key={expense.id} className="expense-card">
+                <div className="expense-card-header">
+                  <div className="expense-card-date">
                     <div className="date-day">{formatDate(expense.date)}</div>
                     <div className="date-weekday">
-                      {new Date(expense.date).toLocaleDateString('en-NG', { weekday: 'short' })}
+                      {new Date(expense.date).toLocaleDateString('en-NG', { weekday: 'long' })}
                     </div>
                   </div>
-                </td>
-                <td>
-                  <span className={`category-badge category-${expense.category}`}>
-                    {getCategoryDisplay(expense.category)}
-                  </span>
-                </td>
-                <td>
-                  <div className="description-cell">
-                    <div className="description-main">{expense.description}</div>
-                    {expense.notes && (
-                      <div className="description-notes">{expense.notes}</div>
-                    )}
+                  <div className="expense-card-amount">{formatCurrency(expense.amount)}</div>
+                </div>
+                
+                <div className="expense-card-details">
+                  <div className="expense-card-row">
+                    <span className="expense-card-label">Category:</span>
+                    <span className={`category-badge category-${expense.category}`}>
+                      {getCategoryDisplay(expense.category)}
+                    </span>
                   </div>
-                </td>
-                <td>
-                  <span className="farm-section">
-                    {getFarmSectionDisplay(expense.farmSection)}
-                  </span>
-                </td>
-                <td className="amount-cell">{formatCurrency(expense.amount)}</td>
-                <td>
-                  <span className="receipt-number">{expense.receiptNo || '-'}</span>
-                </td>
-                <td>
-                  <div className="table-actions">
-                    <button 
-                      className="icon-btn" 
-                      onClick={() => handleEditExpense(expense)}
-                      title="Edit Expense"
-                    >
-                      <FiEdit />
-                    </button>
-                    <button 
-                      className="icon-btn delete" 
-                      onClick={() => handleDeleteExpense(expense.id)}
-                      title="Delete Expense"
-                    >
-                      <FiTrash2 />
-                    </button>
+                  
+                  <div className="expense-card-row">
+                    <span className="expense-card-label">Farm Section:</span>
+                    <span className="expense-card-value">
+                      {getFarmSectionDisplay(expense.farm_section)}
+                    </span>
                   </div>
-                </td>
-              </tr>
+                  
+                  {expense.pond_id && (
+                    <div className="expense-card-row">
+                      <span className="expense-card-label">Linked Pond:</span>
+                      <span className="expense-card-value pond-link">
+                        {ponds[expense.pond_id] || 'Pond #' + expense.pond_id}
+                      </span>
+                    </div>
+                  )}
+                  
+                  {expense.receipt_no && (
+                    <div className="expense-card-row">
+                      <span className="expense-card-label">Receipt No:</span>
+                      <span className="expense-card-value receipt-number">
+                        {expense.receipt_no}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="expense-card-description">
+                  <div className="description-main">{expense.description}</div>
+                  {expense.notes && (
+                    <div className="description-notes">{expense.notes}</div>
+                  )}
+                </div>
+                
+                <div className="expense-card-actions">
+                  <button 
+                    className="icon-btn" 
+                    onClick={() => handleEditExpense(expense)}
+                    title="Edit Expense"
+                  >
+                    <FiEdit /> Edit
+                  </button>
+                  <button 
+                    className="icon-btn delete" 
+                    onClick={() => handleDeleteExpense(expense.id)}
+                    title="Delete Expense"
+                  >
+                    <FiTrash2 /> Delete
+                  </button>
+                </div>
+              </div>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </div>
 
-      {/* Mobile Card View */}
-      <div className="mobile-card-view">
-        {filteredExpenses.map(expense => (
-          <div key={expense.id} className="expense-card">
-            <div className="expense-card-header">
-              <div className="expense-card-date">
-                <div className="date-day">{formatDate(expense.date)}</div>
-                <div className="date-weekday">
-                  {new Date(expense.date).toLocaleDateString('en-NG', { weekday: 'long' })}
+          {/* Charts Section */}
+          <div className="expenses-chart">
+            <h3>Expense Breakdown Analysis</h3>
+            <div className="chart-container">
+              <div className="chart-summary">
+                <h4>Expenses by Category</h4>
+                <div className="category-breakdown">
+                  {categoryBreakdown.map(category => (
+                    <div key={category.value} className="category-item">
+                      <div className="category-info">
+                        <span className="category-name">{category.label}</span>
+                        <span className="category-amount">{formatCurrency(category.total)}</span>
+                      </div>
+                      <div className="category-bar">
+                        <div 
+                          className="category-fill" 
+                          style={{ width: `${category.percentage}%` }}
+                        ></div>
+                      </div>
+                      <div className="category-percentage">{category.percentage}% of total</div>
+                    </div>
+                  ))}
                 </div>
-              </div>
-              <div className="expense-card-amount">{formatCurrency(expense.amount)}</div>
-            </div>
-            
-            <div className="expense-card-details">
-              <div className="expense-card-row">
-                <span className="expense-card-label">Category:</span>
-                <span className={`category-badge category-${expense.category}`}>
-                  {getCategoryDisplay(expense.category)}
-                </span>
               </div>
               
-              <div className="expense-card-row">
-                <span className="expense-card-label">Farm Section:</span>
-                <span className="expense-card-value">
-                  {getFarmSectionDisplay(expense.farmSection)}
-                </span>
+              <div className="chart-summary">
+                <h4>Expenses by Farm Section</h4>
+                <div className="section-breakdown">
+                  {sectionBreakdown.map(section => (
+                    <div key={section.value} className="section-item">
+                      <div className="section-name">{section.label}</div>
+                      <div className="section-amount">{formatCurrency(section.total)}</div>
+                      <div className="section-percentage">{section.percentage}%</div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              
-              {expense.receiptNo && (
-                <div className="expense-card-row">
-                  <span className="expense-card-label">Receipt No:</span>
-                  <span className="expense-card-value receipt-number">
-                    {expense.receiptNo}
-                  </span>
-                </div>
-              )}
-            </div>
-            
-            <div className="expense-card-description">
-              <div className="description-main">{expense.description}</div>
-              {expense.notes && (
-                <div className="description-notes">{expense.notes}</div>
-              )}
-            </div>
-            
-            <div className="expense-card-actions">
-              <button 
-                className="icon-btn" 
-                onClick={() => handleEditExpense(expense)}
-                title="Edit Expense"
-              >
-                <FiEdit /> Edit
-              </button>
-              <button 
-                className="icon-btn delete" 
-                onClick={() => handleDeleteExpense(expense.id)}
-                title="Delete Expense"
-              >
-                <FiTrash2 /> Delete
-              </button>
             </div>
           </div>
-        ))}
-      </div>
-
-      {/* Charts Section */}
-      <div className="expenses-chart">
-        <h3>Expense Breakdown Analysis</h3>
-        <div className="chart-container">
-          <div className="chart-summary">
-            <h4>Expenses by Category</h4>
-            <div className="category-breakdown">
-              {categoryBreakdown.map(category => (
-                <div key={category.value} className="category-item">
-                  <div className="category-info">
-                    <span className="category-name">{category.label}</span>
-                    <span className="category-amount">{formatCurrency(category.total)}</span>
-                  </div>
-                  <div className="category-bar">
-                    <div 
-                      className="category-fill" 
-                      style={{ width: `${category.percentage}%` }}
-                    ></div>
-                  </div>
-                  <div className="category-percentage">{category.percentage}% of total</div>
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          <div className="chart-summary">
-            <h4>Expenses by Farm Section</h4>
-            <div className="section-breakdown">
-              {sectionBreakdown.map(section => (
-                <div key={section.value} className="section-item">
-                  <div className="section-name">{section.label}</div>
-                  <div className="section-amount">{formatCurrency(section.total)}</div>
-                  <div className="section-percentage">{section.percentage}%</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+        </>
+      )}
 
       {/* Expense Modal */}
       <ExpenseModal 

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FiX } from 'react-icons/fi';
+import { supabase } from '../lib/supabase';
+import './Modal.css'; // Assuming you have this CSS file
 
 const InvestmentModal = ({ isOpen, onClose, onSave, investment }) => {
   const [formData, setFormData] = useState({
@@ -7,12 +9,10 @@ const InvestmentModal = ({ isOpen, onClose, onSave, investment }) => {
     date: '',
     amount: '',
     type: 'infrastructure',
-    description: '',
-    expectedROI: '',
-    duration: '',
-    status: 'planned',
-    notes: '',
   });
+
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (investment) {
@@ -21,11 +21,6 @@ const InvestmentModal = ({ isOpen, onClose, onSave, investment }) => {
         date: investment.date || new Date().toISOString().split('T')[0],
         amount: investment.amount || '',
         type: investment.type || 'infrastructure',
-        description: investment.description || '',
-        expectedROI: investment.expectedROI || '',
-        duration: investment.duration || '',
-        status: investment.status || 'planned',
-        notes: investment.notes || '',
       });
     } else {
       setFormData({
@@ -33,13 +28,9 @@ const InvestmentModal = ({ isOpen, onClose, onSave, investment }) => {
         date: new Date().toISOString().split('T')[0],
         amount: '',
         type: 'infrastructure',
-        description: '',
-        expectedROI: '',
-        duration: '',
-        status: 'planned',
-        notes: '',
       });
     }
+    setErrors({});
   }, [investment]);
 
   const handleChange = (e) => {
@@ -48,11 +39,68 @@ const InvestmentModal = ({ isOpen, onClose, onSave, investment }) => {
       ...prev,
       [name]: value
     }));
+    
+    // Clear error for this field
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
   };
 
-  const handleSubmit = (e) => {
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!formData.name.trim()) newErrors.name = 'Investment name is required';
+    if (!formData.date) newErrors.date = 'Date is required';
+    if (!formData.amount || parseFloat(formData.amount) <= 0) newErrors.amount = 'Valid amount is required';
+    if (!formData.type) newErrors.type = 'Investment type is required';
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSave(formData);
+    
+    if (!validateForm()) return;
+
+    setLoading(true);
+    
+    try {
+      // Prepare the data
+      const investmentData = {
+        ...formData,
+        amount: parseFloat(formData.amount),
+        date: formData.date
+      };
+
+      let result;
+      
+      if (investment?.id) {
+        // Update existing investment
+        result = await supabase
+          .from('investments')
+          .update(investmentData)
+          .eq('id', investment.id)
+          .select();
+      } else {
+        // Insert new investment
+        result = await supabase
+          .from('investments')
+          .insert([investmentData])
+          .select();
+      }
+
+      if (result.error) throw result.error;
+
+      // Call the onSave callback with the saved data
+      onSave(result.data[0]);
+      onClose();
+    } catch (error) {
+      console.error('Error saving investment:', error);
+      setErrors({ submit: error.message || 'Failed to save investment. Please try again.' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -67,26 +115,24 @@ const InvestmentModal = ({ isOpen, onClose, onSave, investment }) => {
     { value: 'other', label: 'Other' }
   ];
 
-  const statuses = [
-    { value: 'planned', label: 'Planned' },
-    { value: 'in-progress', label: 'In Progress' },
-    { value: 'completed', label: 'Completed' },
-    { value: 'delayed', label: 'Delayed' },
-    { value: 'cancelled', label: 'Cancelled' }
-  ];
-
   return (
     <div className="modal-overlay">
       <div className="modal-content">
         <div className="modal-header">
           <h2>{investment ? 'Edit Investment' : 'Add New Investment'}</h2>
-          <button className="modal-close" onClick={onClose}>
+          <button className="modal-close" onClick={onClose} disabled={loading}>
             <FiX />
           </button>
         </div>
         
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
+            {errors.submit && (
+              <div className="alert alert-error">
+                <strong>Error:</strong> {errors.submit}
+              </div>
+            )}
+            
             <div className="form-grid">
               <div className="form-group">
                 <label htmlFor="name">Investment Name *</label>
@@ -96,9 +142,12 @@ const InvestmentModal = ({ isOpen, onClose, onSave, investment }) => {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
+                  className={errors.name ? 'error' : ''}
                   placeholder="e.g., New Fish Ponds, Poultry Expansion"
                   required
+                  disabled={loading}
                 />
+                {errors.name && <span className="error-message">{errors.name}</span>}
               </div>
 
               <div className="form-group">
@@ -109,8 +158,11 @@ const InvestmentModal = ({ isOpen, onClose, onSave, investment }) => {
                   name="date"
                   value={formData.date}
                   onChange={handleChange}
+                  className={errors.date ? 'error' : ''}
                   required
+                  disabled={loading}
                 />
+                {errors.date && <span className="error-message">{errors.date}</span>}
               </div>
 
               <div className="form-group">
@@ -121,11 +173,14 @@ const InvestmentModal = ({ isOpen, onClose, onSave, investment }) => {
                   name="amount"
                   value={formData.amount}
                   onChange={handleChange}
+                  className={errors.amount ? 'error' : ''}
                   placeholder="Enter amount"
                   min="0"
                   step="1000"
                   required
+                  disabled={loading}
                 />
+                {errors.amount && <span className="error-message">{errors.amount}</span>}
               </div>
 
               <div className="form-group">
@@ -135,7 +190,9 @@ const InvestmentModal = ({ isOpen, onClose, onSave, investment }) => {
                   name="type"
                   value={formData.type}
                   onChange={handleChange}
+                  className={errors.type ? 'error' : ''}
                   required
+                  disabled={loading}
                 >
                   {investmentTypes.map(type => (
                     <option key={type.value} value={type.value}>
@@ -143,84 +200,26 @@ const InvestmentModal = ({ isOpen, onClose, onSave, investment }) => {
                     </option>
                   ))}
                 </select>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="expectedROI">Expected ROI (%)</label>
-                <input
-                  type="number"
-                  id="expectedROI"
-                  name="expectedROI"
-                  value={formData.expectedROI}
-                  onChange={handleChange}
-                  placeholder="e.g., 15"
-                  min="0"
-                  max="100"
-                  step="0.1"
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="duration">Duration (months)</label>
-                <input
-                  type="number"
-                  id="duration"
-                  name="duration"
-                  value={formData.duration}
-                  onChange={handleChange}
-                  placeholder="e.g., 12"
-                  min="1"
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="status">Status</label>
-                <select
-                  id="status"
-                  name="status"
-                  value={formData.status}
-                  onChange={handleChange}
-                >
-                  {statuses.map(status => (
-                    <option key={status.value} value={status.value}>
-                      {status.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group full-width">
-                <label htmlFor="description">Description</label>
-                <input
-                  type="text"
-                  id="description"
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  placeholder="Brief description of the investment"
-                />
-              </div>
-
-              <div className="form-group full-width">
-                <label htmlFor="notes">Notes</label>
-                <textarea
-                  id="notes"
-                  name="notes"
-                  value={formData.notes}
-                  onChange={handleChange}
-                  placeholder="Additional notes or details..."
-                  rows="3"
-                />
+                {errors.type && <span className="error-message">{errors.type}</span>}
               </div>
             </div>
           </div>
 
           <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>
+            <button 
+              type="button" 
+              className="btn btn-secondary" 
+              onClick={onClose}
+              disabled={loading}
+            >
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary">
-              {investment ? 'Update Investment' : 'Create Investment'}
+            <button 
+              type="submit" 
+              className="btn btn-primary"
+              disabled={loading}
+            >
+              {loading ? 'Saving...' : investment ? 'Update Investment' : 'Create Investment'}
             </button>
           </div>
         </form>
