@@ -1,5 +1,6 @@
+// contexts/ToastContext.js
 import React, { createContext, useContext } from 'react';
-import { Toaster, toast } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 
 const ToastContext = createContext();
 
@@ -13,30 +14,39 @@ export const useToast = () => {
 
 export const ToastProvider = ({ children }) => {
   const showSuccess = (message) => {
-    toast.success(message, {
-      duration: 3000,
-      position: 'top-right',
-    });
+    toast.success(message);
   };
 
   const showError = (message) => {
-    toast.error(message, {
-      duration: 4000,
-      position: 'top-right',
-    });
+    toast.error(message);
   };
 
-  const showInfo = (message) => {
-    toast(message, {
-      duration: 3000,
-      position: 'top-right',
-    });
+  const showLoading = (message) => {
+    return toast.loading(message);
+  };
+
+  const dismiss = (toastId) => {
+    toast.dismiss(toastId);
+  };
+
+  const updateToast = (toastId, options) => {
+    toast.dismiss(toastId);
+    if (options.type === 'success') {
+      toast.success(options.message, { id: toastId });
+    } else if (options.type === 'error') {
+      toast.error(options.message, { id: toastId });
+    }
   };
 
   return (
-    <ToastContext.Provider value={{ showSuccess, showError, showInfo }}>
+    <ToastContext.Provider value={{ 
+      showSuccess, 
+      showError, 
+      showLoading, 
+      dismiss,
+      updateToast 
+    }}>
       {children}
-      <Toaster />
     </ToastContext.Provider>
   );
 };

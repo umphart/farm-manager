@@ -723,4 +723,461 @@
   .section-header h2 {
     font-size: 1.5rem;
   }
+}/* Water parameter inputs */
+.water-param-input {
+  width: 70px;
+  padding: 4px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.water-param-input:focus {
+  outline: none;
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
+}
+
+.mobile-param-input {
+  width: 100%;
+  padding: 4px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+/* Utilization bar */
+.utilization-bar {
+  width: 80px;
+  height: 20px;
+  background-color: #f0f0f0;
+  border-radius: 10px;
+  position: relative;
+  overflow: hidden;
+}
+
+.utilization-fill {
+  height: 100%;
+  background-color: #4CAF50;
+  transition: width 0.3s ease;
+}
+
+.utilization-bar span {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+  z-index: 1;
+}
+
+/* Loading state */
+.fish-farming-page.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.loading-spinner {
+  font-size: 18px;
+  color: #666;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* Error styling */
+.error-message {
+  background-color: #fee;
+  color: #c33;
+  padding: 12px;
+  border-radius: 6px;
+  margin: 20px 0;
+  text-align: center;
+}/* FishFarming.css additions */
+.error-message {
+  background: #fee;
+  border: 1px solid #fcc;
+  border-radius: 8px;
+  padding: 24px;
+  margin: 40px auto;
+  max-width: 600px;
+  text-align: center;
+}
+
+.error-message h3 {
+  color: #c33;
+  margin-bottom: 16px;
+}
+
+.error-actions {
+  margin-top: 20px;
+}
+
+.error-hint {
+  margin-top: 20px;
+  padding: 16px;
+  background: #fff;
+  border-radius: 6px;
+  text-align: left;
+  font-size: 14px;
+}
+
+.error-hint ol {
+  margin-left: 20px;
+  margin-top: 8px;
+}
+
+.error-hint li {
+  margin-bottom: 8px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+}
+
+.empty-state svg {
+  margin-bottom: 20px;
+  color: #ccc;
+}
+
+.empty-state h3 {
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}/* Loading overlay */
+.loading-overlay {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: #666;
+  font-size: 16px;
+}
+
+.loading-spinner::after {
+  content: '';
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #4CAF50;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Disabled button states */
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Error state */
+.error-message {
+  background: #fee;
+  border: 1px solid #fcc;
+  border-radius: 8px;
+  padding: 24px;
+  margin: 40px auto;
+  max-width: 600px;
+  text-align: center;
+}
+
+.error-message h3 {
+  color: #c33;
+  margin-bottom: 16px;
+}
+
+.error-actions {
+  margin-top: 20px;
+}
+
+.error-hint {
+  margin-top: 20px;
+  padding: 16px;
+  background: #fff;
+  border-radius: 6px;
+  text-align: left;
+  font-size: 14px;
+}
+
+.error-hint ol {
+  margin-left: 20px;
+  margin-top: 8px;
+}
+
+.error-hint li {
+  margin-bottom: 8px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+}
+
+.empty-state svg {
+  margin-bottom: 20px;
+  color: #ccc;
+}
+
+.empty-state h3 {
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* Water parameter inputs */
+.water-param-input {
+  width: 70px;
+  padding: 4px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.water-param-input:focus {
+  outline: none;
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
+}
+
+.mobile-param-input {
+  width: 100%;
+  padding: 4px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+/* Utilization bar */
+.utilization-bar {
+  width: 80px;
+  height: 20px;
+  background-color: #f0f0f0;
+  border-radius: 10px;
+  position: relative;
+  overflow: hidden;
+}
+
+.utilization-fill {
+  height: 100%;
+  background-color: #4CAF50;
+  transition: width 0.3s ease;
+}
+
+.utilization-bar span {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+  z-index: 1;
+}/* Stock Management Styles */
+.stock-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.stock-btn {
+  padding: 6px 12px;
+  font-size: 0.875rem;
+}
+
+.stock-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.stock-ratio {
+  font-size: 0.75rem;
+  color: #666;
+  margin-top: 4px;
+}
+
+.capacity-info {
+  font-weight: 500;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+}
+
+.current-stock-info {
+  background: #f5f5f5;
+  padding: 8px;
+  border-radius: 4px;
+  margin: 10px 0;
+}
+
+.hint {
+  font-size: 0.875rem;
+  color: #666;
+  margin-top: 4px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+/* Pond Status Indicators */
+.pond-status-indicator {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-left: 8px;
+}
+
+.pond-status-indicator.active {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.pond-status-indicator.inactive {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.pond-status-indicator.maintenance {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.mobile-pond-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-left: 8px;
+}
+
+.mobile-pond-status.active {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+/* Stock buttons styles */
+.btn-success {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn-warning {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.btn-success:hover {
+  background-color: #218838;
+}
+
+.btn-warning:hover {
+  background-color: #e0a800;
+}
+
+.mobile-stock-ratio {
+  font-size: 0.875rem;
+  color: #666;
+  margin-left: 8px;
+}
+
+.mobile-stock-actions {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #eee;
+}
+
+.mobile-stock-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
 }

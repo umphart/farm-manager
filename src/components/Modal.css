@@ -202,4 +202,58 @@
   .modal-footer .btn {
     width: 100%;
   }
+}.loading-spinner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.loading-spinner::after {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.alert-error {
+  background-color: #fde8e8;
+  border: 1px solid #f56565;
+  color: #c53030;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+.alert-error strong {
+  font-weight: 600;
+}
+/* Add to your existing Modal.css */
+.form-info {
+  margin-top: 8px;
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.area-info {
+  background-color: #f0f9ff;
+  padding: 6px 10px;
+  border-radius: 4px;
+  border-left: 3px solid #3b82f6;
+  margin-bottom: 4px;
+}
+
+.stock-info {
+  background-color: #f0fdf4;
+  padding: 6px 10px;
+  border-radius: 4px;
+  border-left: 3px solid #10b981;
 }

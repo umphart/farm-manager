@@ -12,6 +12,7 @@ import Reports from './pages/Reports';
 import Equipment from './pages/Equipment';
 import Settings from './pages/Settings';
 import './App.css';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -22,6 +23,44 @@ function App() {
         <div className="app">
           <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
           <main className={`main-content ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
+            <Toaster 
+              position="top-right"
+              toastOptions={{
+                duration: 3000,
+                style: {
+                  background: '#363636',
+                  color: '#fff',
+                  fontSize: '14px',
+                  borderRadius: '8px',
+                  padding: '12px 16px',
+                },
+                success: {
+                  duration: 3000,
+                  style: {
+                    background: '#4CAF50',
+                    color: '#fff',
+                  },
+                  iconTheme: {
+                    primary: '#fff',
+                    secondary: '#4CAF50',
+                  },
+                },
+                error: {
+                  duration: 4000,
+                  style: {
+                    background: '#f44336',
+                    color: '#fff',
+                  },
+                },
+                loading: {
+                  duration: Infinity,
+                  style: {
+                    background: '#2196F3',
+                    color: '#fff',
+                  },
+                },
+              }}
+            />
             <Routes>
               <Route path="/" element={<Navigate to="/dashboard" />} />
               <Route path="/dashboard" element={<Dashboard />} />
