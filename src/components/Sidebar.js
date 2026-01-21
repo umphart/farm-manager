@@ -61,21 +61,8 @@ const menuItems = [
           ))}
         </nav>
         
-        {sidebarOpen && (
-          <div className="sidebar-footer">
-            <div className="farm-stats">
-              <h4>Farm Overview</h4>
-              <div className="stat-item">
-                <span>Active Operations:</span>
-                <span className="stat-value">3</span>
-              </div>
-              <div className="stat-item">
-                <span>Total Expenses:</span>
-                <span className="stat-value">₦2,450,000</span>
-              </div>
-            </div>
-          </div>
-        )}
+      
+      
       </div>
       
       {/* Mobile menu toggle button - shown only on mobile when sidebar is closed */}
