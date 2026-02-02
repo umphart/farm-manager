@@ -1,31 +1,46 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   FiHome, FiFeather, FiGitMerge, 
   FiDollarSign, FiTrendingUp, FiBarChart2, 
-  FiSettings, FiMenu, FiChevronLeft,FiPackage
+  FiSettings, FiMenu, FiChevronLeft, FiPackage,
+  FiLogOut // Added logout icon
 } from 'react-icons/fi';
 import { FaFish, FaEgg } from 'react-icons/fa';
 import './Sidebar.css';
 
-const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
-const menuItems = [
-  { path: '/dashboard', icon: <FiHome />, label: 'Dashboard' },
-  { path: '/fish-farming', icon: <FaFish />, label: 'Fish Farming' },
-  { path: '/poultry', icon: <FiFeather />, label: 'Poultry' },
-  { path: '/livestock', icon: <FiGitMerge />, label: 'Livestock' },
-  { path: '/equipment', icon: <FiPackage />, label: 'Equipment' }, // New item
-  { path: '/expenses', icon: <FiDollarSign />, label: 'Expenses' },
-  { path: '/investments', icon: <FiTrendingUp />, label: 'Investments' },
-  { path: '/reports', icon: <FiBarChart2 />, label: 'Reports' },
-  { path: '/settings', icon: <FiSettings />, label: 'Settings' },
-];
+const Sidebar = ({ sidebarOpen, setSidebarOpen, onLogout }) => {
+  const navigate = useNavigate();
+  
+  const menuItems = [
+    { path: '/dashboard', icon: <FiHome />, label: 'Dashboard' },
+    { path: '/fish-farming', icon: <FaFish />, label: 'Fish Farming' },
+    { path: '/poultry', icon: <FiFeather />, label: 'Poultry' },
+    { path: '/livestock', icon: <FiGitMerge />, label: 'Livestock' },
+    { path: '/equipment', icon: <FiPackage />, label: 'Equipment' },
+    { path: '/expenses', icon: <FiDollarSign />, label: 'Expenses' },
+    { path: '/investments', icon: <FiTrendingUp />, label: 'Investments' },
+    { path: '/reports', icon: <FiBarChart2 />, label: 'Reports' },
+    { path: '/settings', icon: <FiSettings />, label: 'Settings' },
+  ];
 
   // Close sidebar on mobile when clicking a link
   const handleNavClick = () => {
     if (window.innerWidth <= 992) {
       setSidebarOpen(false);
     }
+  };
+
+  // Handle logout
+  const handleLogout = () => {
+    if (onLogout) {
+      onLogout();
+    } else {
+      // Fallback logout logic
+      localStorage.removeItem('isAuthenticated');
+    }
+    navigate('/login');
+    handleNavClick(); // Close sidebar on mobile
   };
 
   return (
@@ -59,10 +74,34 @@ const menuItems = [
               {sidebarOpen && <span className="nav-label">{item.label}</span>}
             </NavLink>
           ))}
+          
+          {/* Logout Button - Separated from other navigation items */}
+          <div className="logout-container">
+            <button 
+              className="logout-btn"
+              onClick={handleLogout}
+              title="Logout"
+            >
+              <span className="nav-icon"><FiLogOut /></span>
+              {sidebarOpen && <span className="nav-label">Logout</span>}
+            </button>
+          </div>
         </nav>
         
-      
-      
+        {/* Optional: User info section */}
+        {sidebarOpen && (
+          <div className="sidebar-footer">
+            <div className="user-info">
+              <div className="user-avatar">
+                <span>SM</span>
+              </div>
+              <div className="user-details">
+                <p className="user-name">Sman Farm</p>
+                <p className="user-role">Administrator</p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
       
       {/* Mobile menu toggle button - shown only on mobile when sidebar is closed */}
